@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0] - 2026-09-19
+
+### Summary
+
+Generated repos now start as real git repos: when `git` is on PATH the
+scaffolder runs `git init -b main` and makes the initial `init content-repo`
+commit itself, so prek's hooks have a repo to install into (previously the
+scaffolded tree wasn't even a git repo, and npm packaging silently stripped
+the template's `.gitignore` — it now ships as `template/gitignore` and is
+written under its real name). Bare containers/CI get a repo-local identity
+fallback; environments without git keep the manual step in the next-steps
+output, which now also includes `prek install`.
+
+    npx @capotej/create-content-repo my-blog
+    cd my-blog && git log --oneline   # init content-repo — already there
+
+### Changes
+
+- 6a3b241 feat: scaffold git init + initial commit when git is available
+- 2c6f133 chore: oxfmt CHANGELOG trailing newline
+
 ## [0.2.0] - 2026-09-19
 
 ### Summary
