@@ -2,6 +2,7 @@
 // The template lives as real files under template/ (shipped in the npm
 // package); this module copies it, substituting {{PLACEHOLDER}} values.
 
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
@@ -57,7 +58,10 @@ export function scaffold(name: string, opts: ScaffoldOptions): void {
       body = body.split(`{{${key}}}`).join(value);
     }
     const outRel = renames.reduce((acc, [re, to]) => acc.replace(re, to), rel);
-    const dest = join(root, outRel);
+    // npm strips a root .gitignore from the package; ship it as `gitignore`
+    // and write it under its real name at scaffold time.
+    const destRel = outRel === "gitignore" ? ".gitignore" : outRel;
+    const dest = join(root, destRel);
     mkdirSync(dirname(dest), { recursive: true });
     writeFileSync(dest, body, "utf8");
     count++;
@@ -65,14 +69,44 @@ export function scaffold(name: string, opts: ScaffoldOptions): void {
 
   console.log(`scaffolded ${root} (${count} files)`);
   console.log("");
+
+  const git = initGit(root);
   console.log("next steps:");
   console.log(`  cd ${name}`);
-  console.log(`  git init && git add -A && git commit -m "init content-repo"`);
+  if (!git) {
+    console.log(`  git init && git add -A && git commit -m "init content-repo"`);
+  }
   console.log(`  mise install`);
+  console.log(`  prek install`);
   console.log(`  python3 .agents/skills/build/scripts/build.py`);
   console.log(`  python3 -m http.server -d build 8001`);
   console.log("");
   console.log("deploy: push to Netlify (netlify.toml is ready)");
+}
+
+function initGit(root: string): boolean {
+  // prek's hooks only run inside a git repo, and a content-repo's audit log
+  // starts at the first commit — so wire both at scaffold time when git is
+  // available. Missing git is not an error; the next-steps hint covers it.
+  if (spawnSync("git", ["--version"], { stdio: "ignore" }).status !== 0) {
+    return false;
+  }
+  const run = (args: string[]): boolean =>
+    spawnSync("git", args, { cwd: root, stdio: "ignore" }).status === 0;
+  if (!run(["init", "-b", "main"]) || !run(["add", "-A"])) {
+    return false;
+  }
+  // Containers/CI often have no user.name/user.email; give the fresh repo a
+  // local identity so the initial commit always lands (amendable later).
+  const hasIdentity = (key: string): boolean =>
+    spawnSync("git", ["config", key], { cwd: root, encoding: "utf8" }).stdout.trim() !== "";
+  if (!hasIdentity("user.email")) {
+    run(["config", "user.email", "content-repo@localhost"]);
+  }
+  if (!hasIdentity("user.name")) {
+    run(["config", "user.name", "content-repo"]);
+  }
+  return run(["commit", "-m", "init content-repo"]);
 }
 
 function walk(root: string, fn: (rel: string) => void): void {

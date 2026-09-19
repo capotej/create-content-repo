@@ -35,6 +35,9 @@ jobs:
         run: |
           node dist/cli.js e2e-test-blog
           cd e2e-test-blog
+          # scaffolder wires git itself: real .gitignore + initial commit
+          test -f .gitignore
+          git log --oneline -1 | grep -q "init content-repo"
           mise install
           python3 .agents/skills/build/scripts/build.py
           python3 .agents/skills/build/scripts/build.py --verify
@@ -42,6 +45,5 @@ jobs:
           test -f build/atom.xml
           # example post is dated "today" at scaffold time — find it dynamically
           find build -path "*hello-world/index.html" | grep -q .
-          git init -q && git add -A
           mise exec -- prek validate-config
           mise exec -- prek run --all-files

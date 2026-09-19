@@ -9,11 +9,15 @@ deploy. Run via `npx @capotej/create-content-repo <name>`.
 ```
 npx @capotej/create-content-repo my-blog
 cd my-blog
-git init && git add -A && git commit -m "init content-repo"
 mise install
+prek install
 python3 .agents/skills/build/scripts/build.py
 python3 -m http.server -d build 8001
 ```
+
+If `git` is on PATH, the scaffolder already ran `git init` (branch `main`) and
+made the initial commit; otherwise it prints the manual step in its next-steps
+output.
 
 The generated repo:
 
