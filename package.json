@@ -1,6 +1,6 @@
 {
   "name": "@capotej/create-content-repo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Scaffold a content-repo: .typ sources + agent skills + stdlib-Python build orchestrator. Run via npx @capotej/create-content-repo <name>.",
   "keywords": [
     "agent",
