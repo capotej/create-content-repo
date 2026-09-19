@@ -1,7 +1,7 @@
 # @capotej/create-content-repo — generator contract
 
-Zero-dependency npx scaffolder for content-repos. Mirrors @capotej/tools
-conventions: tsc, pnpm, exact pins, mise, oxlint/oxfmt, OIDC npm publishing.
+Zero-dependency npx scaffolder for content-repos: tsc, pnpm, exact pins,
+mise, oxlint/oxfmt, OIDC npm publishing.
 
 ## Hard rules
 

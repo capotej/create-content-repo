@@ -65,7 +65,7 @@ use mise instead.
 
 ## Formatting / Linting
 
-oxfmt formats, oxlint lints (same setup as @capotej/tools). CI runs lint,
+oxfmt formats, oxlint lints. CI runs lint,
 typecheck, format:check, build, and an E2E scaffold+build step.
 
 ## Releases
