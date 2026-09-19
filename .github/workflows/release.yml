@@ -1,0 +1,37 @@
+name: Release
+
+# Publishes to npm using OIDC trusted publishing — no long-lived npm token.
+# Requires a trusted publisher configured on npmjs.com pointing at this
+# workflow file (release.yml) for @capotej/create-content-repo. See the
+# release skill (.agents/skills/release/SKILL.md).
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write # OIDC token generation for trusted publishing
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        node-version: 24
+        cache: pnpm
+        registry-url: "https://registry.npmjs.org"
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # npm CLI auto-detects the OIDC environment and exchanges the token.
+      # Provenance is generated automatically for public packages from
+      # public repos — no --provenance flag needed.
+      - run: npm publish

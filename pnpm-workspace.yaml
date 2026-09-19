@@ -1,0 +1,18 @@
+# pnpm config for this project. In pnpm 11+ all non-auth settings live here,
+# not in .npmrc. supportedArchitectures installs the optionalDependencies
+# (native binaries) for the listed platforms so a developer on macOS arm64
+# and CI on linux x64 both get the right TS7/oxlint/oxfmt binaries from a
+# single committed lockfile.
+supportedArchitectures:
+  os:
+    - current
+    - darwin
+    - linux
+  cpu:
+    - current
+    - arm64
+    - x64
+
+# Supply-chain guard: only allow package versions published at least 7 days
+# ago (pnpm 11+ equivalent of the npm `minimumReleaseAge` cooldown).
+minimumReleaseAge: 7

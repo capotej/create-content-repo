@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+
+      - name: Setup Node
+        uses: pnpm/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        node-version: 24
+        cache: pnpm
+
+      - name: Setup mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm format:check
+      - run: pnpm build
+      - name: E2E — scaffold + build a content-repo
+        run: |
+          node dist/cli.js e2e-test-blog
+          cd e2e-test-blog
+          mise install
+          python3 .agents/skills/build/scripts/build.py
+          test -f build/index.html
+          test -f build/atom.xml
+          # example post is dated "today" at scaffold time — find it dynamically
+          find build -path "*hello-world/index.html" | grep -q .

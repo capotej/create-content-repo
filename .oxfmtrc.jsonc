@@ -1,0 +1,37 @@
+{
+  // oxfmt config — the JS/TS/JSON formatter. Run via `pnpm format` (--write)
+  // or `pnpm format:check` (--check, CI gate). The style values below are
+  // oxfmt's defaults, spelled out explicitly as the formatter contract:
+  // printWidth 100 / 2-space indent / semicolons / double quotes.
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+
+  // OFF: oxfmt sorts package.json keys by default, which would alphabetize
+  // package.json's deliberate hand-curated field order (name/version/type at
+  // the top; keywords/license/repository at the bottom). Format the JSON,
+  // but do NOT reorder its keys.
+  "experimentalSortPackageJson": false,
+
+  // What oxfmt does NOT touch:
+  //   - dist, generated/    compiler output + any large bundled/vendored tree
+  //   - .oxfmtrc.jsonc,     hand-curated tool config (this file; oxlint
+  //     .oxlintrc.json,     config; markdownlint config). oxfmt's default
+  //     .markdownlint-      trailingComma "all" would add trailing commas to
+  //     cli2.jsonc          these .jsonc files — a JSONC trailing comma risks
+  //                          breaking markdownlint-cli2's parser and is
+  //                          circular for oxfmt to reformat its own config.
+  //                          (Strict .json manifests like package.json /
+  //                          tsconfig.json stay in scope — JSON forbids
+  //                          trailing commas, so they pass clean.)
+  "ignorePatterns": [
+    "dist",
+    "generated",
+    ".oxfmtrc.jsonc",
+    ".oxlintrc.json",
+    ".markdownlint-cli2.jsonc"
+  ]
+}

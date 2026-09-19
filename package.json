@@ -1,0 +1,52 @@
+{
+  "name": "@capotej/create-content-repo",
+  "version": "0.1.0",
+  "description": "Scaffold a content-repo: .typ sources + agent skills + stdlib-Python build orchestrator. Run via npx @capotej/create-content-repo <name>.",
+  "keywords": [
+    "agent",
+    "cli",
+    "content",
+    "scaffold",
+    "ssg",
+    "typst"
+  ],
+  "homepage": "https://github.com/capotej/create-content-repo",
+  "bugs": {
+    "url": "https://github.com/capotej/create-content-repo/issues"
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/capotej/create-content-repo.git"
+  },
+  "bin": {
+    "create-content-repo": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "lint": "pnpm lint:ts",
+    "lint:ts": "oxlint .",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "26.2.0",
+    "oxfmt": "0.63.0",
+    "oxlint": "1.78.0",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.21.0"
+}

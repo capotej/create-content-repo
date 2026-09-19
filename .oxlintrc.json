@@ -1,0 +1,30 @@
+{
+  // oxlint config — the JS/TS linter. Run via `pnpm lint` (CI gate),
+  // `pnpm lint:fix`, or the lint suite script.
+  //
+  // Categories: correctness, suspicious, and perf are all fatal hard gates.
+  //   correctness = definitely wrong; suspicious = likely wrong;
+  //   perf = runtime performance. This is the strict posture: anything
+  //   oxlint can prove is wrong or wasteful blocks CI. Code that is
+  //   intentionally sequential or holds a deliberate pattern suppresses the
+  //   specific rule inline with a named reason, keeping the rule active globally.
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "env": {
+    "node": true
+  },
+  "rules": {
+    // __dirname/__filename are Node ESM-via-fileURLToPath conventions, not
+    // author-chosen dangling-underscore identifiers. Allow them so the rule
+    // (still active for all other _-prefixed names) doesn't flag the idiom.
+    "eslint/no-underscore-dangle": ["error", { "allow": ["__dirname", "__filename"] }]
+  },
+  // Generated output and any bundled/vendored snapshot are never linted.
+  // (node_modules/, .pnpm-store/, .jj/, .git/ are already gitignored, which
+  // oxlint respects; dist/ listed for clarity alongside generated/.)
+  "ignorePatterns": ["dist", "generated"]
+}
