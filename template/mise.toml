@@ -1,0 +1,2 @@
+[tools]
+typst = "{{TYPST_VERSION}}"

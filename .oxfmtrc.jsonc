@@ -28,6 +28,7 @@
   //                          tsconfig.json stay in scope — JSON forbids
   //                          trailing commas, so they pass clean.)
   "ignorePatterns": [
+    "template",
     "dist",
     "generated",
     ".oxfmtrc.jsonc",

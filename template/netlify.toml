@@ -1,0 +1,10 @@
+# Netlify build config. The build image does not officially ship mise, but a
+# self-bootstrapping command works either way: use mise if present, install it
+# otherwise, then install the pinned typst from mise.toml and run the build.
+# mise.toml stays the single source of truth for tool versions.
+[build]
+  command = "command -v mise >/dev/null 2>&1 || curl -fsSL https://mise.run | sh; export PATH=\"$HOME/.local/bin:$PATH\"; mise install; python3 .agents/skills/build/scripts/build.py"
+  publish = "build"
+
+[build.environment]
+  MISE_YES = "1"

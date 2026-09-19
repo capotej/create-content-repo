@@ -23,7 +23,8 @@
     "create-content-repo": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "template"
   ],
   "type": "module",
   "publishConfig": {

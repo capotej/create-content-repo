@@ -26,5 +26,5 @@
   // Generated output and any bundled/vendored snapshot are never linted.
   // (node_modules/, .pnpm-store/, .jj/, .git/ are already gitignored, which
   // oxlint respects; dist/ listed for clarity alongside generated/.)
-  "ignorePatterns": ["dist", "generated"]
+  "ignorePatterns": ["template", "dist", "generated"]
 }
