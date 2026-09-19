@@ -27,12 +27,18 @@ From the repo root (requires mise with typst installed — see Toolchain):
 
 ## Verify
 
-After building:
+Two layers:
 
-    python3 -m http.server -d build 8001
+    python3 .agents/skills/build/scripts/build.py --verify   # determinism check
+    python3 -m http.server -d build 8001                     # eyeball check
 
-Spot-check the home page, one post, one links entry, and the atom feed. For a
-targeted change, re-run the build and re-check only the affected route.
+`--verify` rebuilds into a temp dir and requires the result to be
+byte-identical to the existing build/ — it catches both nondeterminism in
+the pipeline and accidental hand-edits to build/ output. Run it after any
+build.py change and before publishing.
+
+Then spot-check the home page, one post, one links entry, and the atom feed.
+For a targeted change, re-run the build and re-check only the affected route.
 
 ## Extend the orchestrator
 

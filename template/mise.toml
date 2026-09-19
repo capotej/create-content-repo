@@ -1,2 +1,5 @@
 [tools]
 typst = "{{TYPST_VERSION}}"
+typstyle = "0.15.1"
+typos = "1.50.2"
+prek = "0.5.3"

@@ -1,0 +1,5 @@
+# typos config. Add project vocabulary that typos flags incorrectly (proper
+# nouns, technical terms) under [default.extend-words]; never disable the
+# checker wholesale. Docs: https://github.com/crate-ci/typos/blob/master/docs/reference.md
+[default]
+extend-words = {}

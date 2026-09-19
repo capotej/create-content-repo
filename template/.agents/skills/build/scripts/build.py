@@ -246,5 +246,55 @@ def main():
     print("done: {} pages + indexes + feed -> build/".format(n))
 
 
+def verify():
+    """Rebuild into a temp dir and require byte-identical output vs the
+    existing build/. Catches accidental hand-edits to build/ and any
+    nondeterminism in the pipeline. Exit non-zero on any difference."""
+    import tempfile
+
+    global BUILD
+    problems = []
+
+    if not real_build_root().is_dir():
+        print("verify: no existing build/ — run a plain build first",
+              file=sys.stderr)
+        sys.exit(1)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        BUILD = Path(tmp) / "build"
+        main()
+
+        existing = real_build_root()
+        for old in existing.rglob("*"):
+            rel = old.relative_to(existing)
+            new = BUILD / rel
+            if not new.exists():
+                problems.append("missing on rebuild: " + str(rel))
+            elif old.is_file():
+                if not new.is_file():
+                    problems.append("type mismatch: " + str(rel))
+                elif old.read_bytes() != new.read_bytes():
+                    problems.append("content differs: " + str(rel))
+        for new in BUILD.rglob("*"):
+            rel = new.relative_to(BUILD)
+            if not (existing / rel).exists():
+                problems.append("extra on rebuild: " + str(rel))
+
+    if problems:
+        print("verify: FAILED — build/ differs from a fresh rebuild:",
+              file=sys.stderr)
+        for p in problems:
+            print("  - " + p, file=sys.stderr)
+        sys.exit(1)
+    print("verify: ok — build/ is byte-identical on rebuild")
+
+
+def real_build_root():
+    return REPO / "build"
+
+
 if __name__ == "__main__":
-    main()
+    if "--verify" in sys.argv[1:]:
+        verify()
+    else:
+        main()

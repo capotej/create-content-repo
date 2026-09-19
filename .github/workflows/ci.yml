@@ -37,7 +37,11 @@ jobs:
           cd e2e-test-blog
           mise install
           python3 .agents/skills/build/scripts/build.py
+          python3 .agents/skills/build/scripts/build.py --verify
           test -f build/index.html
           test -f build/atom.xml
           # example post is dated "today" at scaffold time — find it dynamically
           find build -path "*hello-world/index.html" | grep -q .
+          git init -q && git add -A
+          mise exec -- prek validate-config
+          mise exec -- prek run --all-files

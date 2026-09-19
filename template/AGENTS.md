@@ -8,10 +8,14 @@ the maintainer of the pipeline — never the renderer.
 ## Toolchain
 
 - `mise.toml` is the single source of truth for tool versions. Current: typst
-  {{TYPST_VERSION}}. Do not install tools globally; use mise (`mise install`,
-  `mise exec -- <cmd>`). `build.py` already routes typst through mise when
+  {{TYPST_VERSION}}, typstyle (format), typos (spelling), prek (hooks). Do not
+  install tools globally; use mise (`mise install`, `mise exec -- <cmd>`).
+  `build.py` already routes typst through mise when
   mise is available and falls back to a typst on PATH otherwise.
 - python3 (stdlib only — no pip dependencies, ever) drives the build.
+- prek runs the lint hooks from `.pre-commit-config.yaml` (typstyle format +
+  typos on `content/**/*.typ`). After cloning: `mise install && prek install`.
+  Run all hooks manually with `prek run --all-files`.
 
 ## Hard rules
 
@@ -25,6 +29,10 @@ the maintainer of the pipeline — never the renderer.
    virtualenvs, no pip installs. It must run on a bare python3.
 5. **Set a meaningful git commit message** for every content change; git history
    is the audit log.
+6. **Lint before committing.** prek runs typstyle (format) and typos (spelling)
+   on `.typ` content at commit time. If a hook fails, fix the finding or run
+   `mise exec -- typstyle --inplace <file>` to apply formatting — never
+   `--no-verify` past a failure you don't understand.
 
 ## Content schema
 

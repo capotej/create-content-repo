@@ -21,9 +21,12 @@ The generated repo:
   (`#let meta` dict + `#context metadata((meta))` marker)
 - `.agents/skills/{build,new-content,publish}/` — skills; the build
   orchestrator lives at `.agents/skills/build/scripts/build.py`
-  (python3 stdlib only, invokes the pinned typst for HTML)
+  (python3 stdlib only, invokes the pinned typst for HTML; `--verify`
+  checks build/ is byte-identical on rebuild)
+- `.pre-commit-config.yaml` + `.typos.toml` — prek hooks (typstyle format +
+  typos spelling on `.typ` content), all tools pinned via mise
 - `AGENTS.md` — the content contract for agents
-- `mise.toml` — pinned typst
+- `mise.toml` — pinned typst, typstyle, typos, prek
 - `netlify.toml` — self-bootstrapping build (mise if present, else
   mise.run) → publish `build/`
 

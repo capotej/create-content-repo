@@ -13,8 +13,10 @@ description: >-
 1. Confirm what is being published: 'git status' and 'git diff --stat'.
    Anything with draft: true in meta is NOT in the build — flip it to false
    only if it should go out.
-2. Build and verify locally (see the build skill). The build must pass before
-   pushing; Netlify will run the same script.
+2. Build and verify locally (see the build skill): plain build, then
+   `build.py --verify`, then `prek run --all-files` (typstyle + typos must
+   pass). All three must be green before pushing; Netlify will run the same
+   build script.
 3. Stage and commit content changes with a message that names the piece:
 
        git add content/ assets/

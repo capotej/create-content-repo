@@ -21,7 +21,17 @@ Requires mise (or a typst on PATH) and python3:
   mise install
   python3 .agents/skills/build/scripts/build.py
 
-Output lands in `build/` (gitignored).
+Output lands in `build/` (gitignored). Verify the output is reproducible and
+untampered:
+
+  python3 .agents/skills/build/scripts/build.py --verify
+
+## Lint
+
+prek wires git hooks (typstyle format + typos spelling on `content/**/*.typ`):
+
+  prek install
+  prek run --all-files
 
 ## Deploy
 

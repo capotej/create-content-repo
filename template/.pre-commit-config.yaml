@@ -1,0 +1,22 @@
+# Lint/format/typo hooks for this content-repo, run by prek (pre-commit
+# compatible, Rust). Install once after cloning:
+#
+#   mise install          # prek + typstyle + typos come from mise.toml
+#   prek install          # wires the git hooks
+#
+# All hooks are local system entries invoking mise-pinned binaries — no
+# remote hook repos are cloned, everything runs from the local toolchain.
+minimum_prek_version: "0.5.0"
+repos:
+  - repo: local
+    hooks:
+      - id: typstyle-format
+        name: typstyle format (typst)
+        entry: mise exec -- typstyle --inplace
+        language: system
+        files: ^content/.*\.typ$
+      - id: typos
+        name: typos (spelling)
+        entry: mise exec -- typos
+        language: system
+        exclude: ^build/
