@@ -32,4 +32,3 @@ deploy config.
 
 - 5ba689b init: @capotej/create-content-repo — zero-dep npx scaffolder for typst content-repos
 - 4628c58 ci: fix setup-node steps — actions/ not pnpm/, inputs under with:
-
