@@ -30,7 +30,7 @@ From the repo root (requires mise with typst installed — see Toolchain):
 Two layers:
 
     python3 .agents/skills/build/scripts/build.py --verify   # determinism check
-    python3 -m http.server -d build 8001                     # eyeball check
+    python3 .agents/skills/serve/scripts/serve.py            # eyeball on :3000
 
 `--verify` rebuilds into a temp dir and requires the result to be
 byte-identical to the existing build/ — it catches both nondeterminism in

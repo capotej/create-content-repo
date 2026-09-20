@@ -79,7 +79,7 @@ export function scaffold(name: string, opts: ScaffoldOptions): void {
   console.log(`  mise install`);
   console.log(`  prek install`);
   console.log(`  python3 .agents/skills/build/scripts/build.py`);
-  console.log(`  python3 -m http.server -d build 8001`);
+  console.log(`  python3 .agents/skills/serve/scripts/serve.py   # dev loop on :3000`);
   console.log("");
   console.log("deploy: push to Netlify (netlify.toml is ready)");
 }

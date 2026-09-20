@@ -12,7 +12,7 @@ cd my-blog
 mise install
 prek install
 python3 .agents/skills/build/scripts/build.py
-python3 -m http.server -d build 8001
+python3 .agents/skills/serve/scripts/serve.py   # http://127.0.0.1:3000
 ```
 
 If `git` is on PATH, the scaffolder already ran `git init` (branch `main`) and
@@ -27,6 +27,8 @@ The generated repo:
   orchestrator lives at `.agents/skills/build/scripts/build.py`
   (python3 stdlib only, invokes the pinned typst for HTML; `--verify`
   checks build/ is byte-identical on rebuild)
+- `.agents/skills/serve/` — dev loop: serves `build/` on :3000 and rebuilds
+  when content/, assets/, or the build script change
 - `.pre-commit-config.yaml` + `.typos.toml` — prek hooks (typstyle format +
   typos spelling on `.typ` content), all tools pinned via mise
 - `AGENTS.md` — the content contract for agents

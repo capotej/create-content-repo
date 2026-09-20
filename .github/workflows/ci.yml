@@ -45,5 +45,33 @@ jobs:
           test -f build/atom.xml
           # example post is dated "today" at scaffold time — find it dynamically
           find build -path "*hello-world/index.html" | grep -q .
-          mise exec -- prek validate-config
-          mise exec -- prek run --all-files
+          # bare names resolve via mise shims (mise-action put them on PATH;
+          # shims read the scaffolded repo's own mise.toml from cwd)
+          prek validate-config
+          prek run --all-files
+      - name: E2E — serve skill watches and rebuilds
+        run: |
+          node dist/cli.js e2e-serve-blog
+          cd e2e-serve-blog
+          mise install
+          python3 .agents/skills/serve/scripts/serve.py --port 3111 >serve.log 2>&1 &
+          SRV=$!
+          # up + initial build done
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:3111/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3111/ | grep -q "Hello, world"
+          # edit a post's meta title -> watch rebuild -> listing reflects it
+          sed -i 's/title: "Hello, world"/title: "Hello, edited world"/' \
+            "content/posts/$(date +%F)-hello-world.typ"
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:3111/ 2>/dev/null | grep -q "Hello, edited world" && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3111/ | grep -q "Hello, edited world"
+          # and the rebuilt post page too
+          curl -fsS "http://127.0.0.1:3111/$(date +%Y)/$(date +%m)/$(date +%d)/hello-world/" \
+            | grep -q "Hello, edited world"
+          kill $SRV
+          grep -q "serve: build ok" serve.log

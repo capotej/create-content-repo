@@ -68,6 +68,7 @@ verbatim.
 
 - `.agents/skills/build/` — build `build/`, verify output, extend the script.
 - `.agents/skills/new-content/` — create a new post/link/paper/page stub.
+- `.agents/skills/serve/` — dev loop: serve `build/` on :3000, rebuild on change.
 - `.agents/skills/publish/` — commit, push, let Netlify deploy.
 
 ## Deploy

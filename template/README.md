@@ -26,6 +26,13 @@ untampered:
 
   python3 .agents/skills/build/scripts/build.py --verify
 
+## Dev loop
+
+Serve `build/` on `http://127.0.0.1:3000` with rebuild-on-change (content/,
+assets/, and the build script are watched):
+
+  python3 .agents/skills/serve/scripts/serve.py
+
 ## Lint
 
 prek wires git hooks (typstyle format + typos spelling on `content/**/*.typ`):
