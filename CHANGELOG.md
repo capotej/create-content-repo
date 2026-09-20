@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.0] - 2026-09-20
+
+### Summary
+
+Generated repos now ship a dev loop: a new `serve` skill whose stdlib-only
+`serve.py` builds once, serves `build/` on `http://127.0.0.1:3000`, and
+rebuilds automatically whenever anything under `content/`, `assets/`, or the
+build script itself changes — so the natural workflow is to point your agent
+harness at the repo, ask for a post, and watch it appear. Rebuilds re-run the
+ordinary `build.py` in a fresh process, meaning the dev loop exercises the
+exact pipeline Netlify runs; failed compiles print the error and keep serving
+(fix and save to retry). CI now proves the watch→rebuild path end-to-end.
+
+    npx @capotej/create-content-repo my-blog
+    python3 .agents/skills/serve/scripts/serve.py   # :3000 + rebuild-on-change
+
+### Changes
+
+- 0e2b558 feat: serve skill — dev server on :3000 with rebuild-on-change
+- fa042b5 docs: AGENTS.md + README match current repo state
+
 ## [0.3.0] - 2026-09-19
 
 ### Summary
