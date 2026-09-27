@@ -14,6 +14,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.parse
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -96,8 +97,47 @@ def watch_loop(stop):
             print("serve: changed: " + rel, flush=True)
         prev = cur
         run_build()
+        RedirectHandler.redirects = load_redirects()
         # Edits landing during the rebuild still differ from prev, so the
         # next poll schedules one more build — never a missed change.
+
+
+class RedirectHandler(SimpleHTTPRequestHandler):
+    """SimpleHTTPRequestHandler + Netlify-style _redirects support.
+
+    Lines are "from    to"; from-patterns starting with "/" are matched
+    exactly, with or without a trailing slash (clean URLs). A match serves
+    a 301 to the target — same as Netlify's default for plain lines.
+    """
+
+    redirects = {}  # class attr set once at startup
+
+    def send_head(self):
+        path = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path)
+        target = self.redirects.get(path)
+        if target is None and not path.endswith("/"):
+            target = self.redirects.get(path + "/")
+        if target is not None:
+            self.send_response(301)
+            self.send_header("Location", target)
+            self.end_headers()
+            return None
+        return super().send_head()
+
+
+def load_redirects():
+    f = BUILD / "_redirects"
+    if not f.is_file():
+        return {}
+    table = {}
+    for line in f.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split(None, 2)
+        if len(parts) >= 2:
+            table[parts[0]] = parts[1]
+    return table
 
 
 def main():
@@ -131,7 +171,8 @@ def main():
 
     run_build()  # initial build; on failure keep serving — watch retries on fix
 
-    handler = partial(SimpleHTTPRequestHandler, directory=str(BUILD))
+    RedirectHandler.redirects = load_redirects()
+    handler = partial(RedirectHandler, directory=str(BUILD))
     httpd = ThreadingHTTPServer((host, port), handler)
     httpd.daemon_threads = True
 

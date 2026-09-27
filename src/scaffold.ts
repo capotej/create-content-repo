@@ -3,7 +3,15 @@
 // package); this module copies it, substituting {{PLACEHOLDER}} values.
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 
@@ -64,6 +72,12 @@ export function scaffold(name: string, opts: ScaffoldOptions): void {
     const dest = join(root, destRel);
     mkdirSync(dirname(dest), { recursive: true });
     writeFileSync(dest, body, "utf8");
+    // Mirror the template file's mode so executables (build.sh) survive the
+    // copy — writeFileSync alone creates everything 0644.
+    const mode = statSync(join(tpl, rel)).mode & 0o777;
+    if (mode & 0o111) {
+      chmodSync(dest, mode);
+    }
     count++;
   });
 

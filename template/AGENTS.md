@@ -79,6 +79,7 @@ verbatim.
 
 ## Deploy
 
-Push to the main branch; Netlify runs the `netlify.toml` command (bootstraps
-mise if missing, `mise install`, `python3 .agents/skills/build/scripts/build.py`)
-and publishes `build/`. Verify deploys in the Netlify UI.
+Push to the main branch; Netlify runs `./build.sh` (installs a pinned,
+sha256-verified mise if missing, `mise install`, then
+`python3 .agents/skills/build/scripts/build.py`) and publishes `build/`.
+Verify deploys in the Netlify UI.

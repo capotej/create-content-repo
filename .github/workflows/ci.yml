@@ -39,6 +39,10 @@ jobs:
           test -f .gitignore
           git log --oneline -1 | grep -q "init content-repo"
           mise install
+          # regression (import-scaffold-gaps): build.sh is the build entrypoint
+          # (netlify.toml runs ./build.sh) and arrives executable
+          test -x build.sh
+          grep -q 'command = "./build.sh"' netlify.toml
           # regression (import-scaffold-gaps): pages honor redirect_from
           cat > content/pages/legacy-page.typ <<'EOF'
           #let meta = (
@@ -76,6 +80,10 @@ jobs:
           # bare names resolve via mise shims (mise-action put them on PATH;
           # shims read the scaffolded repo's own mise.toml from cwd)
           prek validate-config
+          # regression (import-scaffold-gaps): typos excludes binary images
+          # even when prek passes files explicitly (--force-exclude +
+          # .typos.toml [files] extend-exclude pair)
+          printf 'fake png header\nthis line contians a deliberate typo\n' > assets/logo.png
           prek run --all-files
       - name: E2E — serve skill watches and rebuilds
         run: |
@@ -90,6 +98,24 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:3111/ | grep -q "Hello, world"
+          # regression (import-scaffold-gaps): serve honors _redirects
+          # (301 to target) and reloads the table after a watched rebuild
+          cat > content/pages/legacy-page.typ <<'EOF'
+          #let meta = (
+            title: "Legacy page",
+            redirect_from: "/p/legacy-page",
+          )
+          #context metadata((meta))
+
+          = Legacy page
+          EOF
+          for i in $(seq 1 60); do
+            curl -fsS -o /dev/null http://127.0.0.1:3111/legacy-page/ 2>/dev/null && break
+            sleep 1
+          done
+          curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" http://127.0.0.1:3111/p/legacy-page \
+            | grep -q "^301 http://127.0.0.1:3111/legacy-page/$"
+          curl -fsS http://127.0.0.1:3111/legacy-page/ | grep -q "Legacy page"
           # edit a post's meta title -> watch rebuild -> listing reflects it
           sed -i 's/title: "Hello, world"/title: "Hello, edited world"/' \
             "content/posts/$(date +%F)-hello-world.typ"

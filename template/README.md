@@ -42,5 +42,6 @@ prek wires git hooks (typstyle format + typos spelling on `content/**/*.typ`):
 
 ## Deploy
 
-Netlify, from the repo root: the command in `netlify.toml` bootstraps mise if
-needed, installs the pinned typst, runs the build, and publishes `build/`.
+Netlify, from the repo root: `./build.sh` installs a pinned, sha256-verified
+mise if needed, installs the pinned typst, runs the build, and publishes
+`build/`.

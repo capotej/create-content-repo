@@ -17,6 +17,6 @@ repos:
         files: ^content/.*\.typ$
       - id: typos
         name: typos (spelling)
-        entry: mise exec -- typos
+        entry: mise exec -- typos --force-exclude
         language: system
         exclude: ^build/
