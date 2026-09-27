@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.6.0] - 2026-09-27
+
+### Summary
+
+Generated repos now build through a reviewable `./build.sh` entrypoint
+instead of an inline shell one-liner in `netlify.toml`: it installs a
+pinned, sha256-verified mise (v2026.9.6) when Netlify's image lacks it,
+then runs the ordinary build. The dev server honors `build/_redirects`,
+so legacy paths (`/p/about`, old `/blog/…` URLs) 301 on `localhost:3000`
+exactly like production, and reloads the redirect table after every
+watched rebuild. typos no longer chokes on binary images (`.png/.jpg`):
+the prek hook passes `--force-exclude` and `.typos.toml` excludes them
+explicitly. Also fixes the scaffolder dropping executable bits —
+`build.sh` arrives ready to run.
+
+    npx @capotej/create-content-repo my-blog
+    cd my-blog && ./build.sh          # what Netlify runs
+    python3 .agents/skills/serve/scripts/serve.py   # /p/* now 301s locally
+
+### Changes
+
+- 89fdf79 feat: port build.sh entrypoint, serve _redirects, typos image excludes
+
 ## [0.5.0] - 2026-09-27
 
 ### Summary
