@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.5.0] - 2026-09-27
+
+### Summary
+
+The first real-world use of the scaffolder — importing 68 pages of
+capotej.com — surfaced four gaps that had to be hand-patched downstream;
+they are now part of the templates. `build.py` reads meta with
+`--features html`, so content using `#html.elem` (raw HTML iframes,
+`/assets/` images) no longer fails the build with `unknown variable:
+html`; and `pages` now honor `redirect_from` exactly like posts, so a
+scaffolded site replacing an older one can carry legacy paths (e.g.
+`/p/about` → `/about/`) in `_redirects`. AGENTS.md and the new-content
+skill document both. Repos scaffolded before this release need the
+two `build.py` lines back-ported.
+
+    npx @capotej/create-content-repo my-blog
+    # content/pages/about.typ
+    #let meta = (title: "About", redirect_from: "/p/about")
+
+### Changes
+
+- c878543 fix: port capotej.com import patches into templates
+
 ## [0.4.0] - 2026-09-20
 
 ### Summary
