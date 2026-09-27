@@ -93,7 +93,8 @@ def run(cmd, env, what):
 
 
 def read_meta(path, cmd, env):
-    out = run(cmd + ["eval", META_EXPR, "--in", str(path)], env,
+    out = run(cmd + ["eval", "--features", "html", META_EXPR,
+                     "--in", str(path)], env,
               "reading meta from " + str(path))
     try:
         items = json.loads(out)
@@ -196,6 +197,10 @@ def main():
             else:  # pages
                 url = "/{}/".format(f.stem)
                 link_line = ""
+                rf = meta.get("redirect_from")
+                if rf:
+                    olds = [rf] if isinstance(rf, str) else list(rf)
+                    redirects += ["{}    {}".format(o, url) for o in olds]
 
             out = BUILD / url.lstrip("/") / "index.html"
             extra = link_line if section in ("links", "papers") else ""

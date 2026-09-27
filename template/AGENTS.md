@@ -48,11 +48,17 @@ eval of that marker. Fields by section:
   Permalink: `/links/{slug}/`.
 - `content/papers/YYYY-MM-DD-slug.typ` — title, date, arxiv_id (str),
   pdf_url (str), note body. Permalink: `/papers/{slug}/`.
-- `content/pages/slug.typ` — title. Permalink: `/{slug}/`.
+- `content/pages/slug.typ` — title. Permalink: `/{slug}/`. Optional
+  `redirect_from` (str or array of str, legacy paths starting with `/`)
+  emits lines into `_redirects`.
 
 Body is authored in Typst markup (headings `= ` / `==`, `*bold*`,
 `_emph_`, links `#url("...")` or `#link(...)`). Output is typst's HTML
 export (`--features html`), wrapped in a minimal page shell by `build.py`.
+For raw HTML with no typst equivalent (iframes, `<img>` referencing
+`/assets/...`), use `#html.elem("iframe", attrs: (src: "..."))` — as a
+top-level block, never inside a paragraph. Prefer this over `#image()`,
+which base64-inlines the file into every page.
 
 Drafts (`draft: true`) are skipped by the build.
 

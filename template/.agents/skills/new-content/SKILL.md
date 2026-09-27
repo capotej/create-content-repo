@@ -37,7 +37,8 @@ Section-specific meta fields:
   Optional redirect_from (str or array) for legacy paths.
 - links: title, date, url (the external link). Body = the note.
 - papers: title, date, arxiv_id, pdf_url. Body = reading notes.
-- pages: title only.
+- pages: title only. Optional redirect_from (str or array) for legacy paths
+  (e.g. `/p/about`).
 
 Get today's date with 'date +%F' — do not guess.
 

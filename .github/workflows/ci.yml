@@ -39,10 +39,38 @@ jobs:
           test -f .gitignore
           git log --oneline -1 | grep -q "init content-repo"
           mise install
+          # regression (import-scaffold-gaps): pages honor redirect_from
+          cat > content/pages/legacy-page.typ <<'EOF'
+          #let meta = (
+            title: "Legacy page",
+            redirect_from: ("/p/legacy-page", "/legacy.html"),
+          )
+          #context metadata((meta))
+
+          = Legacy page
+          EOF
+          # regression (import-scaffold-gaps): meta eval passes --features html
+          # so content using #html.elem (raw HTML iframes) survives read_meta
+          cat > "content/posts/$(date +%F)-embed-check.typ" <<EOF
+          #let meta = (
+            title: "Embed check",
+            date: "$(date +%F)",
+            tags: ("test",),
+            draft: false,
+          )
+          #context metadata((meta))
+
+          = Embed check
+
+          #html.elem("iframe", attrs: (src: "https://example.com", width: "560", height: "315"))
+          EOF
           python3 .agents/skills/build/scripts/build.py
           python3 .agents/skills/build/scripts/build.py --verify
           test -f build/index.html
           test -f build/atom.xml
+          grep -q '^/p/legacy-page    /legacy-page/$' build/_redirects
+          grep -q '^/legacy.html    /legacy-page/$' build/_redirects
+          grep -q '<iframe' "build/$(date +%Y)/$(date +%m)/$(date +%d)/embed-check/index.html"
           # example post is dated "today" at scaffold time — find it dynamically
           find build -path "*hello-world/index.html" | grep -q .
           # bare names resolve via mise shims (mise-action put them on PATH;
