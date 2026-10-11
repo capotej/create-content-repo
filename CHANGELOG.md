@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.7.0] - 2026-10-11
+
+### Summary
+
+Generated repos now ship a theme system. Code blocks are colored by the
+typst compiler itself: every page compiles through `theme/wrapper.typ`,
+which applies a vendored syntect palette (`theme/catppuccin.tmTheme`) at
+build time — no CSS classes, no JS, content files untouched. Page chrome
+lives in `theme/style.css` with the font/size/measure knobs as `:root`
+variables up top, and the site follows the OS light/dark preference with
+zero JavaScript: latte and mocha halves via `prefers-color-scheme`, plus
+an attribute-selector remap that flips the baked dark code colors to
+their light counterparts. `build.py` fails loud if a compiled page
+contains a code color the stylesheet doesn't remap, so a palette swap
+can't silently ship a broken light mode. The dev server watches `theme/`
+too, and the sample post now includes a code block so a fresh scaffold
+shows the theme immediately.
+
+    npx @capotej/create-content-repo my-blog
+    cd my-blog && python3 .agents/skills/build/scripts/build.py
+    # edit theme/style.css :root knobs (fonts, size, column width); save
+
+### Changes
+
+- 37a989d feat: hybrid theme system — typst compile-time code colors + no-JS light/dark
+
 ## [0.6.0] - 2026-09-27
 
 ### Summary
