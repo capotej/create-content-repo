@@ -23,8 +23,15 @@ the maintainer of the pipeline — never the renderer.
 2. **Never render content with the LLM.** All HTML comes from
    `build.py` invoking the pinned typst compiler. The agent edits `.typ`
    sources and the build script; it does not hand-write page HTML.
-3. **Plain semantic HTML.** This version ships no CSS, no classes, no framework.
-   Do not port styles or add a stylesheet unless asked.
+3. **Semantic HTML + the hybrid theme.** Body HTML is typst's plain
+   semantic export (no classes, no framework, no JS). Styling is split:
+   `theme/wrapper.typ` compiles code-token colors at build time via
+   `#set raw(theme: read(...))` against `theme/catppuccin.tmTheme`;
+   `theme/style.css` owns chrome (fonts, colors, spacing — typography
+   knobs are the `:root` variables at the top) and the no-JS light/dark
+   halves driven by `prefers-color-scheme`. Swapping the .tmTheme means
+   updating the light-mode remap selectors in style.css too — build.py
+   fails loud on any baked code color without a remap entry.
 4. **python3 stdlib only** in `build.py` — no third-party imports, no
    virtualenvs, no pip installs. It must run on a bare python3.
 5. **Set a meaningful git commit message** for every content change; git history
@@ -54,7 +61,9 @@ eval of that marker. Fields by section:
 
 Body is authored in Typst markup (headings `= ` / `==`, `*bold*`,
 `_emph_`, links `#url("...")` or `#link(...)`). Output is typst's HTML
-export (`--features html`), wrapped in a minimal page shell by `build.py`.
+export (`--features html`), compiled through `theme/wrapper.typ` so the
+theme's code-color rules apply, then wrapped in a themed page shell by
+`build.py`.
 For raw HTML with no typst equivalent (iframes, `<img>` referencing
 `/assets/...`), use `#html.elem("iframe", attrs: (src: "..."))` — as a
 top-level block, never inside a paragraph. Prefer this over `#image()`,

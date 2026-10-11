@@ -23,8 +23,16 @@ REPO = Path(__file__).resolve().parents[4]
 CONTENT = REPO / "content"
 ASSETS = REPO / "assets"
 BUILD = REPO / "build"
+THEME = REPO / "theme"
+WRAPPER = THEME / "wrapper.typ"
+STYLE = THEME / "style.css"
 
 META_EXPR = "query(metadata).map(it => it.value)"
+
+# Inline code-token colors look like: style="color: #cba6f7"
+SPAN_COLOR = re.compile(r'style="color: (#[0-9a-fA-F]{6})"')
+# Remap selectors in theme/style.css look like: span[style*="#cba6f7"]
+CSS_REMAP = re.compile(r'span\[style\*="(#[0-9a-fA-F]{6})"\]')
 
 SECTIONS = ("posts", "links", "papers", "pages")
 
@@ -39,6 +47,9 @@ SHELL = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
+<style>
+{style}
+</style>
 </head>
 <body>
 {nav}
@@ -48,6 +59,11 @@ SHELL = """<!doctype html>
 </body>
 </html>
 """
+
+# SPIKE tier-2 theme: typst owns code colors at compile time (theme/wrapper.typ
+# + theme/catppuccin.tmTheme via #set raw(theme:...)); theme/style.css owns the
+# page chrome typst's semantic HTML export cannot express (fonts, bg, spacing)
+# and the light-mode remap of the baked code colors. Loaded in main().
 
 ATOM_ENTRY = """<entry>
 <title>{title}</title>
@@ -106,9 +122,24 @@ def read_meta(path, cmd, env):
     return items[0]
 
 
+def check_code_colors(body, rel, remapped):
+    """Every inline code-token color must have a light-mode remap entry in
+    theme/style.css — otherwise light mode silently shows dark-mode code.
+    The css selectors are the single source of truth (parsed in main)."""
+    for color in SPAN_COLOR.findall(body):
+        if color.lower() not in remapped:
+            die("code color " + color + " has no light-mode remap in "
+                + str(STYLE) + " (source: " + str(rel) + ")")
+
+
 def compile_body(path, cmd, env):
-    out = run(cmd + ["compile", str(path), "--features", "html",
-                     "--format", "html", "-"], env,
+    # SPIKE tier-2: compile through theme/wrapper.typ so its #set rules (code
+    # theme) apply; --input passes the target; --root keeps root-absolute
+    # content paths and /assets refs resolving.
+    rel = "/" + str(path.relative_to(REPO))
+    out = run(cmd + ["compile", str(WRAPPER), "--root", str(REPO),
+                     "--input", "target=" + rel,
+                     "--features", "html", "--format", "html", "-"], env,
               "compiling " + str(path))
     m = re.search(r"<body>(.*)</body>", out, re.DOTALL)
     if not m:
@@ -126,9 +157,10 @@ def split_dated(stem, rel):
     return m.group(1), m.group(2), m.group(3), m.group(4)
 
 
-def page(path, title, body):
+def page(path, title, body, style):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(SHELL.format(title=h(title), nav=NAV, body=body), "utf-8")
+    path.write_text(
+        SHELL.format(title=h(title), nav=NAV, body=body, style=style), "utf-8")
 
 
 def collect():
@@ -146,6 +178,15 @@ def collect():
 def main():
     if not CONTENT.is_dir():
         die("no content/ dir at " + str(REPO))
+    if not WRAPPER.is_file():
+        die("missing theme wrapper: " + str(WRAPPER))
+    if not STYLE.is_file():
+        die("missing theme stylesheet: " + str(STYLE))
+    style = STYLE.read_text("utf-8")
+    remapped = set(c.lower() for c in CSS_REMAP.findall(style))
+    if not remapped:
+        die("no code-color remap selectors (span[style*=...]) found in "
+            + str(STYLE))
     cmd, env = typst_cmd()
     version = run(cmd + ["--version"], env, "checking typst").strip()
     print("toolchain: " + version)
@@ -167,6 +208,7 @@ def main():
                 continue
             title = str(meta.get("title", f.stem))
             body = compile_body(f, cmd, env)
+            check_code_colors(body, rel, remapped)
 
             if section == "posts":
                 y, m, d, slug = split_dated(f.stem, rel)
@@ -204,7 +246,7 @@ def main():
 
             out = BUILD / url.lstrip("/") / "index.html"
             extra = link_line if section in ("links", "papers") else ""
-            page(out, title, body + extra)
+            page(out, title, body + extra, style)
             print("ok: " + url + "  <- " + str(rel))
 
     # Index pages -----------------------------------------------------------
@@ -217,11 +259,11 @@ def main():
         return "\n".join(rows)
 
     page(BUILD / "index.html", "Home",
-         listing(published["posts"], "Posts"))
+         listing(published["posts"], "Posts"), style)
     page(BUILD / "links" / "index.html", "Links",
-         listing(published["links"], "Links"))
+         listing(published["links"], "Links"), style)
     page(BUILD / "papers" / "index.html", "Papers",
-         listing(published["papers"], "Papers"))
+         listing(published["papers"], "Papers"), style)
 
     # Atom feed (posts) -----------------------------------------------------
     posts = sorted(published["posts"], reverse=True)

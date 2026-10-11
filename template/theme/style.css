@@ -1,0 +1,71 @@
+/* theme/catppuccin — chrome CSS for the typst-side hybrid.
+   No JS anywhere: the OS preference picks the half.
+   Light = latte, dark = mocha. The .tmTheme compiles mocha code colors
+   into inline spans once at build time; the remap table at the bottom
+   flips them to latte accents when the OS prefers light. */
+
+:root {
+  color-scheme: light;
+
+  /* ---- typography knobs (the font is part of the theme; edit here) ---- */
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-size: 1rem;          /* master size; code scales via em */
+  --line-height: 1.6;
+  --measure: 42rem;           /* content column width */
+
+  /* ---- palette: light (latte) ---- */
+  --bg: #eff1f5;
+  --fg: #4c4f69;
+  --link: #1e66f5;
+  --pre-bg: #e6e9ef;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1e1e2e;
+    --fg: #cdd6f4;
+    --link: #89b4fa;
+    --pre-bg: #11111b;
+  }
+}
+
+body { background: var(--bg); color: var(--fg);
+       font-family: var(--font-body); font-size: var(--font-size);
+       line-height: var(--line-height);
+       max-width: var(--measure); margin: 2rem auto; padding: 0 1rem; }
+nav { margin-bottom: 2rem; }
+nav a { color: var(--link); margin-right: 0.75rem; text-decoration: none; }
+a { color: var(--link); }
+pre { background: var(--pre-bg); padding: 0.75rem 1rem; border-radius: 6px;
+      overflow-x: auto; }
+code { font-family: var(--font-code); font-size: 0.9em; }
+
+/* ---- code palette remap: baked mocha spans -> latte, light mode only ----
+   Every accent catppuccin-mocha can emit, mapped to its latte counterpart.
+   build.py fails loud if a compiled page contains a span color that has no
+   entry here (see REMAPPED check) — swap the .tmTheme, update this table. */
+
+@media (prefers-color-scheme: light) {
+  span[style*="#f5e0dc"] { color: #dc8a78 !important; } /* rosewater */
+  span[style*="#f2cdcd"] { color: #dd7878 !important; } /* flamingo  */
+  span[style*="#f5c2e7"] { color: #ea76cb !important; } /* pink      */
+  span[style*="#cba6f7"] { color: #8839ef !important; } /* mauve     */
+  span[style*="#f38ba8"] { color: #d20f39 !important; } /* red       */
+  span[style*="#eba0ac"] { color: #e64553 !important; } /* maroon    */
+  span[style*="#fab387"] { color: #fe640b !important; } /* peach     */
+  span[style*="#f9e2af"] { color: #df8e1d !important; } /* yellow    */
+  span[style*="#a6e3a1"] { color: #40a02b !important; } /* green     */
+  span[style*="#94e2d5"] { color: #179299 !important; } /* teal      */
+  span[style*="#89dceb"] { color: #04a5e5 !important; } /* sky       */
+  span[style*="#74c7ec"] { color: #209fb5 !important; } /* sapphire  */
+  span[style*="#89b4fa"] { color: #1e66f5 !important; } /* blue      */
+  span[style*="#b4befe"] { color: #7287fd !important; } /* lavender  */
+  span[style*="#cdd6f4"] { color: #4c4f69 !important; } /* text      */
+  span[style*="#bac2de"] { color: #5c5f77 !important; } /* subtext1  */
+  span[style*="#a6adc8"] { color: #6c6f85 !important; } /* subtext0  */
+  span[style*="#9399b2"] { color: #7c7f93 !important; } /* overlay2  */
+  span[style*="#7f849c"] { color: #8c8fa1 !important; } /* overlay1  */
+  span[style*="#6c7086"] { color: #9ca0b0 !important; } /* overlay0  */
+}

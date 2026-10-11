@@ -22,7 +22,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[4]
 BUILD = REPO / "build"
 BUILD_SCRIPT = REPO / ".agents" / "skills" / "build" / "scripts" / "build.py"
-WATCH_DIRS = (REPO / "content", REPO / "assets")
+WATCH_DIRS = (REPO / "content", REPO / "assets", REPO / "theme")
 WATCH_FILES = (BUILD_SCRIPT,)
 DEFAULT_PORT = 3000
 DEFAULT_HOST = "127.0.0.1"
