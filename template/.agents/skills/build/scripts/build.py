@@ -315,10 +315,12 @@ def main():
         return ts.replace(" ", "T") + "Z"
 
     def entry_id(p):
-        """Stable entry id: sha256(title + created). Posts that set
-        `created` keep a stable id even if the title is later fixed."""
+        """Stable entry id: sha256(title + created). The trailing " UTC"
+        mirrors the legacy Rails scheme (Time#to_s on a UTC timestamp) —
+        posts imported with their original `created` keep byte-compatible
+        feed ids across the migration."""
         return hashlib.sha256(
-            (p["title"] + p["created"]).encode("utf-8")
+            (p["title"] + p["created"] + " UTC").encode("utf-8")
         ).hexdigest()
 
     posts = sorted(published["posts"], key=lambda p: p["created"],
