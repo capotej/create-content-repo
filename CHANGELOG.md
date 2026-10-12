@@ -26,6 +26,11 @@ autodiscovery tag.
 - docs: schema + new-content skill cover created/updated and excerpt
 - example post demonstrates the excerpt block
 
+### Commits
+
+- a138174 feat: feed entry ids, timestamps, summaries + front-page excerpts
+- 414dda3 fix: keep entry-id scheme byte-compatible with the legacy feed
+
 ## [0.7.0] - 2026-10-11
 
 ### Summary
