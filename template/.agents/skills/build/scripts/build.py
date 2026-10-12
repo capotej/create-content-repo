@@ -9,6 +9,7 @@ assets/ into build/.
 Usage: python3 .agents/skills/build/scripts/build.py   (from repo root)
 """
 
+import hashlib
 import json
 import os
 import re
@@ -47,6 +48,7 @@ SHELL = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
+<link rel="alternate" type="application/atom+xml" title="ATOM" href="/atom.xml">
 <style>
 {style}
 </style>
@@ -68,9 +70,10 @@ SHELL = """<!doctype html>
 ATOM_ENTRY = """<entry>
 <title>{title}</title>
 <link href="{link}"/>
-<id>{link}</id>
-<updated>{date}T00:00:00Z</updated>
-<summary>{summary}</summary>
+<id>{id}</id>
+<published>{published}</published>
+<updated>{updated}</updated>
+<summary type="html">{summary}</summary>
 </entry>
 """
 
@@ -79,7 +82,7 @@ ATOM_FEED = """<?xml version="1.0" encoding="utf-8"?>
 <title>{title}</title>
 <id>{base}</id>
 <link href="{base}"/>
-<updated>{updated}T00:00:00Z</updated>
+<updated>{updated}</updated>
 {entries}
 </feed>
 """
@@ -101,11 +104,30 @@ def typst_cmd():
     die("no typst found: install mise (https://mise.run) and run mise install")
 
 
-def run(cmd, env, what):
-    p = subprocess.run(cmd, capture_output=True, text=True, env=env)
+def run(cmd, env, what, stdin=None):
+    p = subprocess.run(cmd, capture_output=True, text=True, env=env,
+                       input=stdin)
     if p.returncode != 0:
         die(what + " failed:\n" + (p.stderr or p.stdout))
     return p.stdout
+
+
+def compile_excerpt(path, cmd, env):
+    """Compile a post's `#let excerpt` content block (if declared) to an
+    HTML fragment via a stdin driver that imports it. Returns "" when the
+    post declares no excerpt."""
+    text = path.read_text("utf-8")
+    if not re.search(r"^#let excerpt\b", text, re.M):
+        return ""
+    rel = "/" + str(path.relative_to(REPO))
+    out = run(cmd + ["compile", "-", "--root", str(REPO),
+                     "--features", "html", "--format", "html", "-"], env,
+              "compiling excerpt of " + str(path),
+              stdin='#import "' + rel + '": excerpt\n#excerpt\n')
+    m = re.search(r"<body>(.*)</body>", out, re.DOTALL)
+    if not m:
+        die("no <body> in typst output for excerpt of " + str(path))
+    return m.group(1).strip()
 
 
 def read_meta(path, cmd, env):
@@ -219,7 +241,17 @@ def main():
                 if rf:
                     olds = [rf] if isinstance(rf, str) else list(rf)
                     redirects += ["{}    {}".format(o, url) for o in olds]
-                published["posts"].append((meta.get("date", ""), title, url))
+                published["posts"].append({
+                    "date": meta.get("date", ""),
+                    "title": title,
+                    "url": url,
+                    "excerpt": compile_excerpt(f, cmd, env),
+                    # second-precision timestamps; default to date 00:00:00
+                    "created": str(meta.get("created",
+                                             meta.get("date", "") + " 00:00:00")),
+                    "updated": str(meta.get("updated",
+                                             meta.get("date", "") + " 00:00:00")),
+                })
             elif section == "links":
                 y, m, d, slug = split_dated(f.stem, rel)
                 url = "/links/{}/".format(slug)
@@ -258,24 +290,50 @@ def main():
         rows.append("</ul>")
         return "\n".join(rows)
 
+    def post_listing(items, header):
+        """Home listing: date + title per post, with the excerpt (if any)
+        rendered beneath."""
+        rows = ['<h1>' + h(header) + "</h1>", "<ul>"]
+        for p in sorted(items, key=lambda p: p["created"], reverse=True):
+            rows.append("<li>{} — <a href=\"{}\">{}</a>".format(
+                h(p["date"]), h(p["url"]), h(p["title"])))
+            if p["excerpt"]:
+                rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
+            rows.append("</li>")
+        rows.append("</ul>")
+        return "\n".join(rows)
+
     page(BUILD / "index.html", "Home",
-         listing(published["posts"], "Posts"), style)
+         post_listing(published["posts"], "Posts"), style)
     page(BUILD / "links" / "index.html", "Links",
          listing(published["links"], "Links"), style)
     page(BUILD / "papers" / "index.html", "Papers",
          listing(published["papers"], "Papers"), style)
 
     # Atom feed (posts) -----------------------------------------------------
-    posts = sorted(published["posts"], reverse=True)
+    def iso(ts):
+        return ts.replace(" ", "T") + "Z"
+
+    def entry_id(p):
+        """Stable entry id: sha256(title + created). Posts that set
+        `created` keep a stable id even if the title is later fixed."""
+        return hashlib.sha256(
+            (p["title"] + p["created"]).encode("utf-8")
+        ).hexdigest()
+
+    posts = sorted(published["posts"], key=lambda p: p["created"],
+                   reverse=True)
     if posts:
         entries = "".join(
             ATOM_ENTRY.format(
-                title=xescape(t), link=xescape(u),
-                date=xescape(d),
-                summary=xescape(""),
-            ) for d, t, u in posts)
+                title=xescape(p["title"]), link=xescape(p["url"]),
+                id=entry_id(p),
+                published=iso(p["created"]), updated=iso(p["updated"]),
+                summary=xescape(p["excerpt"]),
+            ) for p in posts)
+        feed_updated = max(iso(p["updated"]) for p in posts)
         (BUILD / "atom.xml").write_text(
-            ATOM_FEED.format(title="Posts", base=".", updated=posts[0][0],
+            ATOM_FEED.format(title="Posts", base=".", updated=feed_updated,
                              entries=entries), "utf-8")
         print("ok: /atom.xml")
 

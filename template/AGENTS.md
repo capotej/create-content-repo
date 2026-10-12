@@ -50,7 +50,13 @@ eval of that marker. Fields by section:
 - `content/posts/YYYY-MM-DD-slug.typ` — title (str), date (str `YYYY-MM-DD`,
   must match the filename prefix), tags (array of str), draft (bool). Permalink:
   `/{y}/{m}/{d}/{slug}/`. Optional `redirect_from` (str or array of str,
-  legacy paths starting with `/`) emits lines into `_redirects`.
+  legacy paths starting with `/`) emits lines into `_redirects`. Optional
+  `created` / `updated` (str `YYYY-MM-DD HH:MM:SS`, UTC) override the feed's
+  timestamps — set them when importing posts from another system so feed
+  entry ids (`sha256(title + created)`) and `<published>`/`<updated>` carry
+  over. Optional `#let excerpt = [...]` content block below the metadata
+  marker: a short teaser rendered under the post on the home listing and
+  emitted as the Atom `<summary>`; omit it for no excerpt.
 - `content/links/YYYY-MM-DD-slug.typ` — title, date, url (str), note body.
   Permalink: `/links/{slug}/`.
 - `content/papers/YYYY-MM-DD-slug.typ` — title, date, arxiv_id (str),

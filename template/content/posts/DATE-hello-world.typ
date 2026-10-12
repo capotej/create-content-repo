@@ -6,6 +6,11 @@
 )
 #context metadata((meta))
 
+#let excerpt = [
+  This is the first post in a fresh content-repo, rendered from *Typst*
+  markup to plain semantic HTML by the pinned typst compiler.
+]
+
 = Hello, world
 
 This is the first post in a fresh content-repo. The body is authored in

@@ -34,7 +34,9 @@ Body in Typst markup.
 Section-specific meta fields:
 
 - posts: title, date (must equal the filename prefix), tags (array), draft.
-  Optional redirect_from (str or array) for legacy paths.
+  Optional redirect_from (str or array) for legacy paths. Optional
+  created/updated (`"YYYY-MM-DD HH:MM:SS"`, for imported posts) and a
+  `#let excerpt = [...]` block (teaser for the home listing and feed).
 - links: title, date, url (the external link). Body = the note.
 - papers: title, date, arxiv_id, pdf_url. Body = reading notes.
 - pages: title only. Optional redirect_from (str or array) for legacy paths

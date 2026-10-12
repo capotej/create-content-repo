@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.8.0] - 2026-10-12
+
+### Summary
+
+Generated repos now emit a proper Atom feed with stable entry ids. Feed
+entries carry `sha256(title + created)` ids, second-precision
+`<published>`/`<updated>` timestamps, and an html `<summary>`; posts gain
+optional `created`/`updated` meta (for imports from another system, so
+subscriber state carries over) and an optional `#let excerpt = [...]`
+content block, rendered under the post on the home listing and into the
+feed summary. Every page head ships a `<link rel="alternate">` feed
+autodiscovery tag.
+
+### Changes
+
+- feat(feed): sha256 entry ids, published/updated timestamps, html
+  summaries; `created`/`updated` post meta (default date 00:00:00)
+- feat(listing): optional `#let excerpt` block rendered on the home page
+  under each post (.excerpt styles in theme.css)
+- feat(head): atom feed autodiscovery link in the page shell
+- build.py: `compile_excerpt()` renders a post's excerpt via a stdin
+  typst driver importing the `#let excerpt` block; posts sorted by
+  `created`
+- docs: schema + new-content skill cover created/updated and excerpt
+- example post demonstrates the excerpt block
+
 ## [0.7.0] - 2026-10-11
 
 ### Summary
