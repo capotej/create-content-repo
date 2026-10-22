@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.1] - 2026-10-22
+
+### Summary
+
+Republish of 0.9.0 — the v0.9.0 release workflow failed on a transient
+npm registry 503 during the publish PUT (provenance was signed; the
+version never landed). No code changes; same content as 0.9.0.
+
+### Changes
+
+- ec0f808 release v0.9.0 (publish failed: registry 503; never on npm)
+
 ## [0.9.0] - 2026-10-22
 
 ### Summary
