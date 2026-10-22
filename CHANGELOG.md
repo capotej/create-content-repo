@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.9.0] - 2026-10-22
+
+### Summary
+
+Posts are now taggable end-to-end: the `tags` meta field each post already
+declared finally does something. The build validates tag values as URL
+slugs (failing loud on anything else), emits a `/t/<tag>/` index page per
+tag (newest first, with excerpts and pills), and renders `# tag` pills on
+the home listing, on tag pages, and at the bottom of every post page —
+matching the legacy Abbey site. The sample post ships two tags so a fresh
+`npx @capotej/create-content-repo my-blog` scaffold demonstrates the tag
+pages out of the box.
+
+### Changes
+
+- 1b2edc8 feat(tags): /t/<tag>/ pages + tag pills, ported from capotej.com
+
 ## [0.8.0] - 2026-10-12
 
 ### Summary
