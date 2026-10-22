@@ -171,6 +171,20 @@ def compile_body(path, cmd, env):
 
 DATE_PREFIX = re.compile(r"^(\d{4})-(\d{2})-(\d{2})-(.+)$")
 
+# Tag values must be URL slugs (they become /t/<tag>/ pages): lowercase
+# alphanumerics with single interior hyphens.
+TAG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def tag_pills(tags):
+    """Legacy Abbey tag pills: '# tag' links to the /t/<tag>/ page."""
+    if not tags:
+        return ""
+    lis = "".join(
+        '<li><a href="/t/{}/"># {}</a></li>'.format(h(t), h(t))
+        for t in tags)
+    return '<ul class="tags">' + lis + "</ul>"
+
 
 def split_dated(stem, rel):
     m = DATE_PREFIX.match(stem)
@@ -231,6 +245,7 @@ def main():
             title = str(meta.get("title", f.stem))
             body = compile_body(f, cmd, env)
             check_code_colors(body, rel, remapped)
+            pills = ""
 
             if section == "posts":
                 y, m, d, slug = split_dated(f.stem, rel)
@@ -241,10 +256,21 @@ def main():
                 if rf:
                     olds = [rf] if isinstance(rf, str) else list(rf)
                     redirects += ["{}    {}".format(o, url) for o in olds]
+                tags = meta.get("tags", ())
+                if isinstance(tags, str):
+                    tags = (tags,)
+                tags = [str(t) for t in tags]
+                for t in tags:
+                    if not TAG_RE.match(t):
+                        die("tag is not a slug (lowercase alphanumerics, "
+                            "single interior hyphens): " + repr(t)
+                            + " in " + str(rel))
+                pills = tag_pills(tags)
                 published["posts"].append({
                     "date": meta.get("date", ""),
                     "title": title,
                     "url": url,
+                    "tags": tags,
                     "excerpt": compile_excerpt(f, cmd, env),
                     # second-precision timestamps; default to date 00:00:00
                     "created": str(meta.get("created",
@@ -278,7 +304,7 @@ def main():
 
             out = BUILD / url.lstrip("/") / "index.html"
             extra = link_line if section in ("links", "papers") else ""
-            page(out, title, body + extra, style)
+            page(out, title, body + pills + extra, style)
             print("ok: " + url + "  <- " + str(rel))
 
     # Index pages -----------------------------------------------------------
@@ -299,6 +325,7 @@ def main():
                 h(p["date"]), h(p["url"]), h(p["title"])))
             if p["excerpt"]:
                 rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
+            rows.append(tag_pills(p["tags"]))
             rows.append("</li>")
         rows.append("</ul>")
         return "\n".join(rows)
@@ -309,6 +336,27 @@ def main():
          listing(published["links"], "Links"), style)
     page(BUILD / "papers" / "index.html", "Papers",
          listing(published["papers"], "Papers"), style)
+
+    # Tag pages (/t/<tag>/) — parity with legacy Abbey -----------------------
+    # Entry shape mirrors the tag page of the legacy site: title link, date,
+    # excerpt, tag pills. No global /tags/ index (legacy 404s on it).
+    tagmap = {}
+    for p in published["posts"]:
+        for t in p["tags"]:
+            tagmap.setdefault(t, []).append(p)
+    for t in sorted(tagmap):
+        entries = sorted(tagmap[t], key=lambda p: p["created"], reverse=True)
+        rows = ['<h1>Posts tagged with "#{}"</h1>'.format(h(t)), "<ul>"]
+        for p in entries:
+            rows.append("<li>{} — <a href=\"{}\">{}</a>".format(
+                h(p["date"]), h(p["url"]), h(p["title"])))
+            if p["excerpt"]:
+                rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
+            rows.append(tag_pills(p["tags"]))
+            rows.append("</li>")
+        rows.append("</ul>")
+        page(BUILD / "t" / t / "index.html", "#" + t, "\n".join(rows), style)
+        print("ok: /t/{}/  ({} posts)".format(t, len(entries)))
 
     # Atom feed (posts) -----------------------------------------------------
     def iso(ts):

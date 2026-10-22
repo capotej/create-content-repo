@@ -1,7 +1,7 @@
 #let meta = (
   title: "Hello, world",
   date: "{{DATE}}",
-  tags: ("meta",),
+  tags: ("meta", "typst"),
   draft: false,
 )
 #context metadata((meta))
