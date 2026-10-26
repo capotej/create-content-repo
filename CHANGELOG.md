@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.10.0] - 2026-10-26
+
+### Summary
+
+Generated sites gain the full site shell capotej.com has: a footer, page
+titles like `Post | Site Name`, a styled 404 page, the post date under
+each post title, "Read more →" links on the home listing, and a richer
+Atom feed (full `<content>` per entry, absolute URLs, feed id and
+self-link). Sites identify via `SITE_NAME`/`BASE_URL` constants in
+build.py — substituted from the scaffold name, editable before launch.
+A fresh `npx @capotej/create-content-repo my-blog` ships all of it.
+
+### Changes
+
+- fbc31be feat(shell): full site-shell parity, ported from capotej.com
+- c16e9da docs(tags): document tag schema in the template AGENTS.md contract
+
 ## [0.9.1] - 2026-10-22
 
 ### Summary
