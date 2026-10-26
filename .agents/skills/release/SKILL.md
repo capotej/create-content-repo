@@ -185,7 +185,7 @@ notes.
 7. **A green checkout followed by an npm 503.** If the publish step dies on a
    transient registry error (npm error E503 / Service Unavailable on the PUT),
    the version never landed: confirm with `npm view <pkg> version
-   dist-tags.latest`, and if absent re-release as `<X.Y.Z+1>` — CHANGELOG
+dist-tags.latest`, and if absent re-release as `<X.Y.Z+1>` — CHANGELOG
    entry explaining the republish, hand-bump, re-gate, commit/tag/push. Never
    move the failed tag. Create a GitHub release for the failed tag too, marked
    in the title (e.g. "v0.9.0 (publish failed)"), and pass `--latest`

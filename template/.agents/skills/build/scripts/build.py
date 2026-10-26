@@ -65,7 +65,10 @@ SHELL = """<!doctype html>
 </style>
 </head>
 <body>
+<header>
+<a href="/"><h1>{site_name}</h1></a>
 {nav}
+</header>
 <main>
 {body}
 </main>
@@ -227,11 +230,12 @@ def page(path, title, body, style):
     path.write_text(
         SHELL.format(title=h(title + " | " + SITE_NAME)
                      if title != "Home" else h(SITE_NAME),
+                     site_name=h(SITE_NAME),
                      nav=NAV, body=body, style=style, footer=FOOTER),
         "utf-8")
 
 
-NOT_FOUND = """<h1>The page you were looking for doesn't exist.</h1>
+NOT_FOUND = """<h2>The page you were looking for doesn't exist.</h2>
 <p>You may have mistyped the address or the page may have moved.</p>
 <p><a href="/">Back to the home page</a></p>
 """
@@ -350,7 +354,7 @@ def main():
 
     # Index pages -----------------------------------------------------------
     def listing(items, header):
-        rows = ['<h1>' + h(header) + "</h1>", "<ul>"]
+        rows = ['<h2>' + h(header) + "</h2>", "<ul>"]
         for date, title, url in sorted(items, reverse=True):
             rows.append("<li>{} — <a href=\"{}\">{}</a></li>".format(
                 h(str(date)), h(url), h(title)))
@@ -360,15 +364,15 @@ def main():
     def post_listing(items, header):
         """Home listing: date + title per post, with the excerpt (if any)
         rendered beneath."""
-        rows = ['<h1>' + h(header) + "</h1>", "<ul>"]
+        rows = ['<h2>' + h(header) + "</h2>", "<ul>"]
         for p in sorted(items, key=lambda p: p["created"], reverse=True):
             rows.append("<li>{} — <a href=\"{}\">{}</a>".format(
                 h(p["date"]), h(p["url"]), h(p["title"])))
             if p["excerpt"]:
                 rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
+            rows.append(tag_pills(p["tags"]))
             rows.append('<p class="more"><a href="{}">Read more →</a></p>'
                         .format(h(p["url"])))
-            rows.append(tag_pills(p["tags"]))
             rows.append("</li>")
         rows.append("</ul>")
         return "\n".join(rows)
@@ -389,7 +393,7 @@ def main():
             tagmap.setdefault(t, []).append(p)
     for t in sorted(tagmap):
         entries = sorted(tagmap[t], key=lambda p: p["created"], reverse=True)
-        rows = ['<h1>Posts tagged with "#{}"</h1>'.format(h(t)), "<ul>"]
+        rows = ['<h2>Posts tagged with "#{}"</h2>'.format(h(t)), "<ul>"]
         for p in entries:
             rows.append("<li>{} — <a href=\"{}\">{}</a>".format(
                 h(p["date"]), h(p["url"]), h(p["title"])))
