@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.12.0] - 2026-10-26
+
+### Summary
+
+The home listing now paginates: 5 posts per page with a numbered pager
+and Prev/Next links (legacy capotej.com parity), on static `/page/N/`
+URLs — a static host can't route `?page=N` query strings. Page 1 stays
+canonical `/`, deeper pages get `Home — page N` titles plus
+`rel=prev`/`rel=next` head links, and `/page/1/` 301s to `/` so the
+first page has exactly one URL. Sites with five or fewer posts emit no
+pager at all.
+
+### Changes
+
+- 378e11e feat(pagination): 5 posts/page home listing with /page/N/ URLs
+
 ## [0.11.1] - 2026-10-26
 
 ### Summary
