@@ -19,6 +19,7 @@
   --fg: #4c4f69;
   --link: #1e66f5;
   --pre-bg: #e6e9ef;
+  --line: #dbe0ea;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,23 +29,46 @@
     --fg: #cdd6f4;
     --link: #89b4fa;
     --pre-bg: #11111b;
+    --line: #313244;
   }
 }
 
 body { background: var(--bg); color: var(--fg);
        font-family: var(--font-body); font-size: var(--font-size);
-       line-height: var(--line-height);
-       max-width: var(--measure); margin: 2rem auto; padding: 0 1rem; }
-header { border-bottom: 1px solid var(--fg); padding-bottom: 1rem;
-         margin-bottom: 2rem; }
+       line-height: var(--line-height); }
+/* chrome blocks (header/footer) are full-bleed; their contents center at
+   the content measure; main carries the measure directly */
+header { border-bottom: 1px solid var(--line);
+         padding: 2rem 1rem 1rem; margin-bottom: 2rem; }
+header > * { max-width: var(--measure); margin-left: auto; margin-right: auto; }
 header h1 { margin: 0 0 0.75rem; font-size: 1.35em; }
-header h1 a { color: inherit; text-decoration: none; }
+header > a { display: block; color: inherit; text-decoration: none; }
+/* listing titles + read-more: no underline; body links stay underlined */
+main > ul > li > a { text-decoration: none; }
+p.more a { text-decoration: none; }
 nav { margin-bottom: 0; }
-nav a { color: var(--link); margin-right: 0.75rem; text-decoration: none; }
+nav a { color: var(--link); margin-right: 1rem; text-decoration: none; }
 a { color: var(--link); }
-footer { margin-top: 3rem; border-top: 1px solid var(--fg); padding-top: 1rem;
+main { max-width: var(--measure); margin: 0 auto 3rem; padding: 0 1rem; }
+footer { border-top: 1px solid var(--line); padding: 1rem;
          font-size: 0.85em; opacity: 0.7; }
+footer > * { max-width: var(--measure); margin-left: auto; margin-right: auto; }
 time { display: block; font-size: 0.85em; opacity: 0.7; margin: 0.2rem 0 1rem; }
+/* home listing: bigger title, tight muted date beneath, no bullets */
+main > ul > li > a.post-title { display: block; font-size: 1.25em; }
+main > ul > li > time { margin: 0.1rem 0 0.55rem; opacity: 0.6; }
+main > ul { list-style: none; padding: 0; }
+main > ul > li { margin-bottom: 1.75rem; }
+main > ul > li:last-child { margin-bottom: 0; }
+/* home listing: pills + read-more share a line, faint rule between posts */
+main ul.posts > li { margin-bottom: 0; padding-bottom: 1.75rem;
+                     border-bottom: 1px solid var(--line); }
+main ul.posts > li + li { padding-top: 1.75rem; }
+main ul.posts > li:last-child { border-bottom: none; padding-bottom: 0; }
+main ul.posts > li > ul.tags { display: inline-flex; margin: 0;
+                               vertical-align: middle; }
+main ul.posts > li > p.more { display: inline; margin: 0 0 0 1rem;
+                              vertical-align: middle; }
 p.more { margin: 0.1rem 0; font-size: 0.9em; }
 .excerpt { margin: 0.35rem 0 0.9rem; font-size: 0.92em; opacity: 0.85; }
 .excerpt p { margin: 0 0 0.5rem; }

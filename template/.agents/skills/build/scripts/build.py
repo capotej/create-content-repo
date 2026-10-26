@@ -44,8 +44,8 @@ SITE_NAME = "{{NAME}}"
 BASE_URL = "https://{{NAME}}.netlify.app"
 
 NAV = (
-    '<nav><a href="/">Home</a> | <a href="/links/">Links</a> | '
-    '<a href="/papers/">Papers</a> | <a href="/about/">About</a></nav>'
+    '<nav><a href="/">Home</a> <a href="/links/">Links</a> '
+    '<a href="/papers/">Papers</a> <a href="/about/">About</a></nav>'
 )
 
 FOOTER = (
@@ -361,19 +361,25 @@ def main():
         rows.append("</ul>")
         return "\n".join(rows)
 
+    def post_entry(p):
+        """One listing entry: title, muted date, excerpt, pills + read-more
+        (shared by the home page and tag pages)."""
+        rows = ['<li><a class="post-title" href="{}">{}</a>'.format(
+            h(p["url"]), h(p["title"]))]
+        rows.append("<time>" + h(p["date"]) + "</time>")
+        if p["excerpt"]:
+            rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
+        rows.append(tag_pills(p["tags"]))
+        rows.append('<p class="more"><a href="{}">Read more →</a></p>'
+                    .format(h(p["url"])))
+        rows.append("</li>")
+        return "\n".join(rows)
+
     def post_listing(items, header):
-        """Home listing: date + title per post, with the excerpt (if any)
-        rendered beneath."""
-        rows = ['<h2>' + h(header) + "</h2>", "<ul>"]
+        """Post listings (home + tag pages): entries styled by ul.posts."""
+        rows = ['<h2>' + h(header) + "</h2>", '<ul class="posts">']
         for p in sorted(items, key=lambda p: p["created"], reverse=True):
-            rows.append("<li>{} — <a href=\"{}\">{}</a>".format(
-                h(p["date"]), h(p["url"]), h(p["title"])))
-            if p["excerpt"]:
-                rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
-            rows.append(tag_pills(p["tags"]))
-            rows.append('<p class="more"><a href="{}">Read more →</a></p>'
-                        .format(h(p["url"])))
-            rows.append("</li>")
+            rows.append(post_entry(p))
         rows.append("</ul>")
         return "\n".join(rows)
 
@@ -393,16 +399,9 @@ def main():
             tagmap.setdefault(t, []).append(p)
     for t in sorted(tagmap):
         entries = sorted(tagmap[t], key=lambda p: p["created"], reverse=True)
-        rows = ['<h2>Posts tagged with "#{}"</h2>'.format(h(t)), "<ul>"]
-        for p in entries:
-            rows.append("<li>{} — <a href=\"{}\">{}</a>".format(
-                h(p["date"]), h(p["url"]), h(p["title"])))
-            if p["excerpt"]:
-                rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
-            rows.append(tag_pills(p["tags"]))
-            rows.append("</li>")
-        rows.append("</ul>")
-        page(BUILD / "t" / t / "index.html", "#" + t, "\n".join(rows), style)
+        header = 'Posts tagged with "#{}"'.format(t)
+        page(BUILD / "t" / t / "index.html", "#" + t,
+             post_listing(entries, header), style)
         print("ok: /t/{}/  ({} posts)".format(t, len(entries)))
 
     # Atom feed (posts) -----------------------------------------------------
