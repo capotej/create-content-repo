@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0] - 2026-10-26
+
+### Summary
+
+Every generated page now opens with a site-name header — the site name
+as a linked `<h1>` above the nav (`<a href="/"><h1>My Blog</h1></a>`),
+matching the legacy capotej.com shape. It is the single h1 per page:
+listing, tag, and 404 headings demote to h2. Home-listing entries now
+order excerpt → tag pills → "Read more →".
+
+### Changes
+
+- 69544c4 feat(shell): site-name header (linked h1, single-h1 pages), ported from capotej.com
+
 ## [0.10.0] - 2026-10-26
 
 ### Summary
