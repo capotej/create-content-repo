@@ -389,10 +389,10 @@ def main():
         rows.append("</ul>")
         return "\n".join(rows)
 
-    # Home listing, paginated -----------------------------------------------
-    # Page 1 = / (canonical); pages 2+ live at /page/N/. /page/1/ redirects
-    # to / so there is exactly one URL for the first page.
-    def pager(n_pages, current):
+    # Paginated listings (home, tag pages, links) ---------------------------
+    # Page 1 is the canonical <base>/ URL; pages 2+ live at <base>/page/N/.
+    # <base>/page/1/ redirects so there is exactly one URL for page 1.
+    def pager(href_for, current, n_pages):
         """Numbered links + Prev/Next, legacy Abbey style."""
         if n_pages <= 1:
             return ""
@@ -400,46 +400,56 @@ def main():
         for n in range(1, n_pages + 1):
             if n == current:
                 out.append('<span aria-current="page">{}</span>'.format(n))
-            elif n == 1:
-                out.append('<a href="/">{}</a>'.format(n))
             else:
-                out.append('<a href="/page/{}/">{}</a>'.format(n, n))
+                out.append('<a href="{}">{}</a>'.format(href_for(n), n))
         if current > 1:
-            prev = "/" if current == 2 else "/page/{}/".format(current - 1)
-            out.append('<a rel="prev" href="{}">‹ Prev</a>'.format(prev))
+            out.append('<a rel="prev" href="{}">‹ Prev</a>'
+                       .format(href_for(current - 1)))
         if current < n_pages:
-            out.append('<a rel="next" href="/page/{}/">Next ›</a>'
-                       .format(current + 1))
+            out.append('<a rel="next" href="{}">Next ›</a>'
+                       .format(href_for(current + 1)))
         out.append("</nav>")
         return "".join(out)
 
+    def emit_paginated(url_base, title, items, body_for):
+        """Write <url_base>/ plus <url_base>/page/N/ for a listing.
+        body_for(chunk) renders one page's entries; items arrive sorted."""
+        def href_for(n):
+            return url_base + "/" if n == 1 else url_base + "/page/{}/".format(n)
+
+        dir_base = BUILD / url_base.lstrip("/")
+        n_pages = max(1, -(-len(items) // PER_PAGE))
+        for cur in range(1, n_pages + 1):
+            chunk = items[(cur - 1) * PER_PAGE:cur * PER_PAGE]
+            nav_html = pager(href_for, cur, n_pages)
+            if cur == 1:
+                head = ('<link rel="next" href="{}">'.format(href_for(2))
+                        if n_pages > 1 else "")
+                page(dir_base / "index.html", title,
+                     body_for(chunk) + nav_html, style, head=head)
+            else:
+                head = '<link rel="prev" href="{}">'.format(href_for(cur - 1))
+                if cur < n_pages:
+                    head += '<link rel="next" href="{}">'.format(
+                        href_for(cur + 1))
+                page(dir_base / "page" / str(cur) / "index.html",
+                     title + " — page {}".format(cur),
+                     body_for(chunk) + nav_html, style, head=head)
+            print("ok: {}  ({} entries{})".format(
+                href_for(cur), len(chunk),
+                ", {} pages".format(n_pages) if cur == 1 and n_pages > 1
+                else ""))
+        if n_pages > 1:
+            redirects.append("{}    {}    301".format(
+                href_for(1) + "page/1/", href_for(1)))
+
     posts = sorted(published["posts"], key=lambda p: p["created"],
                    reverse=True)
-    n_pages = max(1, -(-len(posts) // PER_PAGE))
-    for cur in range(1, n_pages + 1):
-        chunk = posts[(cur - 1) * PER_PAGE:cur * PER_PAGE]
-        nav_html = pager(n_pages, cur)
-        if cur == 1:
-            head = ('<link rel="next" href="/page/2/">'
-                    if n_pages > 1 else "")
-            page(BUILD / "index.html", "Home",
-                 post_listing(chunk, "Posts") + nav_html, style, head=head)
-        else:
-            suffix = " — page {}".format(cur)
-            rel = ('<link rel="prev" href="{}">'.format(
-                "/" if cur == 2 else "/page/{}/".format(cur - 1)))
-            if cur < n_pages:
-                rel += '<link rel="next" href="/page/{}/">'.format(cur + 1)
-            page(BUILD / "page" / str(cur) / "index.html",
-                 "Home" + suffix,
-                 post_listing(chunk, "Posts") + nav_html, style,
-                 head=rel)
-            print("ok: /page/{}/  ({} posts)".format(cur, len(chunk)))
-    if n_pages > 1:
-        redirects.append("/page/1/    /    301")
-
-    page(BUILD / "links" / "index.html", "Links",
-         listing(published["links"], "Links"), style)
+    emit_paginated("", "Home", posts,
+                   lambda chunk: post_listing(chunk, "Posts"))
+    emit_paginated("/links", "Links",
+                   sorted(published["links"], reverse=True),
+                   lambda chunk: listing(chunk, "Links"))
     page(BUILD / "papers" / "index.html", "Papers",
          listing(published["papers"], "Papers"), style)
 
@@ -452,10 +462,9 @@ def main():
             tagmap.setdefault(t, []).append(p)
     for t in sorted(tagmap):
         entries = sorted(tagmap[t], key=lambda p: p["created"], reverse=True)
-        header = 'Posts tagged with "#{}"'.format(t)
-        page(BUILD / "t" / t / "index.html", "#" + t,
-             post_listing(entries, header), style)
-        print("ok: /t/{}/  ({} posts)".format(t, len(entries)))
+        emit_paginated("/t/" + t, "#" + t, entries,
+                       lambda chunk, t=t: post_listing(
+                           chunk, 'Posts tagged with "#{}"'.format(t)))
 
     # Atom feed (posts) -----------------------------------------------------
     def iso(ts):
