@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.0] - 2026-10-26
+
+### Summary
+
+Pagination now covers every listing: the links page and tag pages
+paginate exactly like the home listing (5 per page, numbered pager +
+Prev/Next, page 1 canonical, `/page/1/` 301s to the base, rel=prev/next
+head links) via one shared emitter. Tag pages over five posts split into
+`/t/<tag>/page/N/`; the links index into `/links/page/N/`. The papers
+index stays single-page.
+
+### Changes
+
+- 3c6115a feat(pagination): generalize to links + tag pages (shared emit_paginated)
+
 ## [0.12.0] - 2026-10-26
 
 ### Summary
