@@ -43,6 +43,10 @@ SECTIONS = ("posts", "links", "papers", "pages")
 SITE_NAME = "{{NAME}}"
 BASE_URL = "https://{{NAME}}.netlify.app"
 
+# Home listing pagination (legacy Abbey parity: 5 posts/page, path-based
+# /page/N/ URLs — a static host cannot route ?page=N query strings).
+PER_PAGE = 5
+
 NAV = (
     '<nav><a href="/">Home</a> <a href="/links/">Links</a> '
     '<a href="/papers/">Papers</a> <a href="/about/">About</a></nav>'
@@ -60,6 +64,7 @@ SHELL = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <link rel="alternate" type="application/atom+xml" title="ATOM" href="/atom.xml">
+{head}
 <style>
 {style}
 </style>
@@ -225,13 +230,14 @@ def split_dated(stem, rel):
     return m.group(1), m.group(2), m.group(3), m.group(4)
 
 
-def page(path, title, body, style):
+def page(path, title, body, style, head=""):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         SHELL.format(title=h(title + " | " + SITE_NAME)
                      if title != "Home" else h(SITE_NAME),
                      site_name=h(SITE_NAME),
-                     nav=NAV, body=body, style=style, footer=FOOTER),
+                     nav=NAV, body=body, style=style, footer=FOOTER,
+                     head=head),
         "utf-8")
 
 
@@ -383,8 +389,55 @@ def main():
         rows.append("</ul>")
         return "\n".join(rows)
 
-    page(BUILD / "index.html", "Home",
-         post_listing(published["posts"], "Posts"), style)
+    # Home listing, paginated -----------------------------------------------
+    # Page 1 = / (canonical); pages 2+ live at /page/N/. /page/1/ redirects
+    # to / so there is exactly one URL for the first page.
+    def pager(n_pages, current):
+        """Numbered links + Prev/Next, legacy Abbey style."""
+        if n_pages <= 1:
+            return ""
+        out = ['<nav class="pager">']
+        for n in range(1, n_pages + 1):
+            if n == current:
+                out.append('<span aria-current="page">{}</span>'.format(n))
+            elif n == 1:
+                out.append('<a href="/">{}</a>'.format(n))
+            else:
+                out.append('<a href="/page/{}/">{}</a>'.format(n, n))
+        if current > 1:
+            prev = "/" if current == 2 else "/page/{}/".format(current - 1)
+            out.append('<a rel="prev" href="{}">‹ Prev</a>'.format(prev))
+        if current < n_pages:
+            out.append('<a rel="next" href="/page/{}/">Next ›</a>'
+                       .format(current + 1))
+        out.append("</nav>")
+        return "".join(out)
+
+    posts = sorted(published["posts"], key=lambda p: p["created"],
+                   reverse=True)
+    n_pages = max(1, -(-len(posts) // PER_PAGE))
+    for cur in range(1, n_pages + 1):
+        chunk = posts[(cur - 1) * PER_PAGE:cur * PER_PAGE]
+        nav_html = pager(n_pages, cur)
+        if cur == 1:
+            head = ('<link rel="next" href="/page/2/">'
+                    if n_pages > 1 else "")
+            page(BUILD / "index.html", "Home",
+                 post_listing(chunk, "Posts") + nav_html, style, head=head)
+        else:
+            suffix = " — page {}".format(cur)
+            rel = ('<link rel="prev" href="{}">'.format(
+                "/" if cur == 2 else "/page/{}/".format(cur - 1)))
+            if cur < n_pages:
+                rel += '<link rel="next" href="/page/{}/">'.format(cur + 1)
+            page(BUILD / "page" / str(cur) / "index.html",
+                 "Home" + suffix,
+                 post_listing(chunk, "Posts") + nav_html, style,
+                 head=rel)
+            print("ok: /page/{}/  ({} posts)".format(cur, len(chunk)))
+    if n_pages > 1:
+        redirects.append("/page/1/    /    301")
+
     page(BUILD / "links" / "index.html", "Links",
          listing(published["links"], "Links"), style)
     page(BUILD / "papers" / "index.html", "Papers",
