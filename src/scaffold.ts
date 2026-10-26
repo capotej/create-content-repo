@@ -55,6 +55,7 @@ export function scaffold(name: string, opts: ScaffoldOptions): void {
     NAME: name,
     TYPST_VERSION: opts.typstVersion,
     DATE: today(),
+    YEAR: new Date().getFullYear().toString(),
   };
   const renames: [RegExp, string][] = [[/(^|\/)DATE-(.+\.typ)$/, `$1${subs.DATE}-$2`]];
 

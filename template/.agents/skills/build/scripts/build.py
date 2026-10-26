@@ -37,9 +37,20 @@ CSS_REMAP = re.compile(r'span\[style\*="(#[0-9a-fA-F]{6})"\]')
 
 SECTIONS = ("posts", "links", "papers", "pages")
 
+# Site identity — the scaffolder substitutes {{NAME}} / {{YEAR}} here;
+# BASE_URL should be edited to the deployed origin before launch (it
+# feeds absolute Atom links + the feed id).
+SITE_NAME = "{{NAME}}"
+BASE_URL = "https://{{NAME}}.netlify.app"
+
 NAV = (
     '<nav><a href="/">Home</a> | <a href="/links/">Links</a> | '
     '<a href="/papers/">Papers</a> | <a href="/about/">About</a></nav>'
+)
+
+FOOTER = (
+    '<footer><p>© {{YEAR}} {}. All rights reserved.</p></footer>'
+    .format(SITE_NAME)
 )
 
 SHELL = """<!doctype html>
@@ -58,6 +69,7 @@ SHELL = """<!doctype html>
 <main>
 {body}
 </main>
+{footer}
 </body>
 </html>
 """
@@ -74,14 +86,16 @@ ATOM_ENTRY = """<entry>
 <published>{published}</published>
 <updated>{updated}</updated>
 <summary type="html">{summary}</summary>
+<content type="html">{content}</content>
 </entry>
 """
 
 ATOM_FEED = """<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
 <title>{title}</title>
-<id>{base}</id>
+<id>{id}</id>
 <link href="{base}"/>
+<link rel="self" type="application/atom+xml" href="{self_url}"/>
 <updated>{updated}</updated>
 {entries}
 </feed>
@@ -176,6 +190,21 @@ DATE_PREFIX = re.compile(r"^(\d{4})-(\d{2})-(\d{2})-(.+)$")
 TAG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
+def insert_time(body, date):
+    """Post pages show the date under the title: a <time> element inserted
+    after the first <h2> (the post title heading, exported by typst)."""
+    i = body.find("<h2>")
+    if i == -1:
+        return body
+    j = i + len("<h2>")
+    k = body.find("</h2>", j)
+    if k == -1:
+        return body
+    return (body[:k + len("</h2>")]
+            + '\n<time>' + h(date) + "</time>"
+            + body[k + len("</h2>"):])
+
+
 def tag_pills(tags):
     """Legacy Abbey tag pills: '# tag' links to the /t/<tag>/ page."""
     if not tags:
@@ -196,7 +225,16 @@ def split_dated(stem, rel):
 def page(path, title, body, style):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        SHELL.format(title=h(title), nav=NAV, body=body, style=style), "utf-8")
+        SHELL.format(title=h(title + " | " + SITE_NAME)
+                     if title != "Home" else h(SITE_NAME),
+                     nav=NAV, body=body, style=style, footer=FOOTER),
+        "utf-8")
+
+
+NOT_FOUND = """<h1>The page you were looking for doesn't exist.</h1>
+<p>You may have mistyped the address or the page may have moved.</p>
+<p><a href="/">Back to the home page</a></p>
+"""
 
 
 def collect():
@@ -251,6 +289,8 @@ def main():
                 y, m, d, slug = split_dated(f.stem, rel)
                 if str(meta.get("date", "")) != "-".join((y, m, d)):
                     die("meta.date does not match filename prefix: " + str(rel))
+                feed_content = body
+                body = insert_time(body, meta.get("date", ""))
                 url = "/{}/{}/{}/{}/".format(y, m, d, slug)
                 rf = meta.get("redirect_from")
                 if rf:
@@ -271,6 +311,7 @@ def main():
                     "title": title,
                     "url": url,
                     "tags": tags,
+                    "content": feed_content,
                     "excerpt": compile_excerpt(f, cmd, env),
                     # second-precision timestamps; default to date 00:00:00
                     "created": str(meta.get("created",
@@ -325,6 +366,8 @@ def main():
                 h(p["date"]), h(p["url"]), h(p["title"])))
             if p["excerpt"]:
                 rows.append('<div class="excerpt">' + p["excerpt"] + "</div>")
+            rows.append('<p class="more"><a href="{}">Read more →</a></p>'
+                        .format(h(p["url"])))
             rows.append(tag_pills(p["tags"]))
             rows.append("</li>")
         rows.append("</ul>")
@@ -376,14 +419,19 @@ def main():
     if posts:
         entries = "".join(
             ATOM_ENTRY.format(
-                title=xescape(p["title"]), link=xescape(p["url"]),
+                title=xescape(p["title"]), link=xescape(BASE_URL + p["url"]),
                 id=entry_id(p),
                 published=iso(p["created"]), updated=iso(p["updated"]),
                 summary=xescape(p["excerpt"]),
+                content=xescape(p["content"]),
             ) for p in posts)
         feed_updated = max(iso(p["updated"]) for p in posts)
         (BUILD / "atom.xml").write_text(
-            ATOM_FEED.format(title="Posts", base=".", updated=feed_updated,
+            ATOM_FEED.format(title=SITE_NAME + " - Feed",
+                             id="tag:{{NAME}},2005:/feed",
+                             base=BASE_URL,
+                             self_url=BASE_URL + "/atom.xml",
+                             updated=feed_updated,
                              entries=entries), "utf-8")
         print("ok: /atom.xml")
 
@@ -391,6 +439,10 @@ def main():
     if redirects:
         (BUILD / "_redirects").write_text("\n".join(redirects) + "\n", "utf-8")
         print("ok: _redirects ({} lines)".format(len(redirects)))
+
+    # 404 ----------------------------------------------------------------------
+    page(BUILD / "404.html", "Not Found", NOT_FOUND, style)
+    print("ok: 404.html")
 
     # Assets ----------------------------------------------------------------
     if ASSETS.is_dir():
