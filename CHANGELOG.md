@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.11.1] - 2026-10-26
+
+### Summary
+
+Chrome polish batch ported from capotej.com: the blog-title link,
+listing titles, and read-more links lose their underlines (fixing a
+broken selector shipped in 0.11.0); nav links drop their pipe
+separators; the header/footer rules go full-bleed in a faint line
+color; and post listings (home + tag pages, now sharing one renderer)
+show bigger title links with a muted date beneath, tag pills and
+read-more on one line, and a faint separator between posts.
+
+### Changes
+
+- d9caff8 feat(theme): chrome polish batch, ported from capotej.com (0.11.1)
+
 ## [0.11.0] - 2026-10-26
 
 ### Summary
