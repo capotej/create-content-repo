@@ -345,13 +345,19 @@ def main():
                 })
             elif section == "papers":
                 y, m, d, slug = split_dated(f.stem, rel)
-                url = "/papers/{}/".format(slug)
                 arxiv = str(meta.get("arxiv_id", ""))
                 pdf = str(meta.get("pdf_url", ""))
-                link_line = ('<p><a href="' + h(pdf) + '">pdf'
-                             + (" (arXiv:" + h(arxiv) + ")" if arxiv else "")
-                             + "</a></p>")
-                published["papers"].append((meta.get("date", ""), title, url))
+                if not pdf:
+                    die("papers need a pdf_url (external pdf link): "
+                        + str(rel))
+                published["papers"].append({
+                    "date": meta.get("date", ""),
+                    "title": title,
+                    "out_url": pdf,
+                    "arxiv": arxiv,
+                    "body": body,
+                })
+                continue
             else:  # pages
                 url = "/{}/".format(f.stem)
                 link_line = ""
@@ -392,6 +398,33 @@ def main():
 {body}
 </li>""".format(url=h(l["out_url"]), title=h(l["title"]), cite=cite,
                body=body)
+
+    def paper_entry(p):
+        """One papers-index entry, links-index style: outbound pdf title
+        link with the external-link glyph, citation line (url [arXiv:id] ·
+        date), note body beneath. Leading title heading stripped."""
+        body = p["body"]
+        if body.startswith("<h2>"):
+            end = body.find("</h2>")
+            if end != -1:
+                body = body[end + len("</h2>"):].lstrip()
+        cite = ('<a href="{url}">{url}</a>{arxiv} <time>{date}</time>').format(
+            url=h(p["out_url"]),
+            arxiv=(" arXiv:" + h(p["arxiv"])) if p["arxiv"] else "",
+            date=h(p["date"]))
+        return """<li><a class="post-title" href="{url}">{title}<svg class="icon-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+<p class="cite">{cite}</p>
+{body}
+</li>""".format(url=h(p["out_url"]), title=h(p["title"]), cite=cite,
+               body=body)
+
+    def paper_listing(items, header):
+        """Papers index: ul.posts entries styled like the links index."""
+        rows = ['<h2>' + h(header) + "</h2>", '<ul class="posts">']
+        for p in items:
+            rows.append(paper_entry(p))
+        rows.append("</ul>")
+        return "\n".join(rows)
 
     def post_entry(p):
         """One listing entry: title, muted date, excerpt, pills + read-more
@@ -485,8 +518,10 @@ def main():
                    sorted(published["links"],
                           key=lambda l: l["date"], reverse=True),
                    lambda chunk: link_listing(chunk, "Links"))
-    page(BUILD / "papers" / "index.html", "Papers",
-         listing(published["papers"], "Papers"), style)
+    emit_paginated("/papers", "Papers",
+                   sorted(published["papers"],
+                          key=lambda p: p["date"], reverse=True),
+                   lambda chunk: paper_listing(chunk, "Papers"))
 
     # Tag pages (/t/<tag>/) — parity with legacy Abbey -----------------------
     # Entry shape mirrors the tag page of the legacy site: title link, date,

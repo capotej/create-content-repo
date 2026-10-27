@@ -64,7 +64,8 @@ eval of that marker. Fields by section:
 - `content/links/YYYY-MM-DD-slug.typ` — title, date, url (str), note body.
   Permalink: `/links/{slug}/`.
 - `content/papers/YYYY-MM-DD-slug.typ` — title, date, arxiv_id (str),
-  pdf_url (str), note body. Permalink: `/papers/{slug}/`.
+  pdf_url (str, required — the outbound link), note body. No detail
+  page: the papers index links straight out to the pdf.
 - `content/pages/slug.typ` — title. Permalink: `/{slug}/`. Optional
   `redirect_from` (str or array of str, legacy paths starting with `/`)
   emits lines into `_redirects`.
