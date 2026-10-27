@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.15.0] - 2026-10-27
+
+### Summary
+
+Links-index entries gain a citation line and an external-link glyph:
+the outbound title link now ends in a small arrow-box icon (inline
+SVG, inherits the link color, no JS), and a muted citation line
+beneath shows the clickable URL followed by the date — matching the
+legacy capotej.com/links entry chrome.
+
+### Changes
+
+- 104a0dd feat(links): citation line (clickable url + date) and external-link glyph on index entries
+
 ## [0.14.0] - 2026-10-27
 
 ### Summary
