@@ -335,7 +335,13 @@ def main():
                 out_url = str(meta.get("url", ""))
                 link_line = ('<p><a href="' + h(out_url) + '">' + h(title)
                              + "</a></p>")
-                published["links"].append((meta.get("date", ""), title, url))
+                published["links"].append({
+                    "date": meta.get("date", ""),
+                    "title": title,
+                    "url": url,            # local /links/<slug>/ page
+                    "out_url": out_url,
+                    "body": body,
+                })
             elif section == "papers":
                 y, m, d, slug = split_dated(f.stem, rel)
                 url = "/papers/{}/".format(slug)
@@ -367,6 +373,23 @@ def main():
         rows.append("</ul>")
         return "\n".join(rows)
 
+    def link_entry(l):
+        """One links-index entry, post-index style: outbound title link,
+        muted date, note body beneath (legacy /links parity). The note
+        body opens with an '= title' heading that would duplicate the
+        title link — strip it."""
+        body = l["body"]
+        if body.startswith("<h2>"):
+            end = body.find("</h2>")
+            if end != -1:
+                body = body[end + len("</h2>"):].lstrip()
+        rows = ['<li><a class="post-title" href="{}">{}</a>'.format(
+            h(l["out_url"]), h(l["title"]))]
+        rows.append("<time>" + h(l["date"]) + "</time>")
+        rows.append(body)
+        rows.append("</li>")
+        return "\n".join(rows)
+
     def post_entry(p):
         """One listing entry: title, muted date, excerpt, pills + read-more
         (shared by the home page and tag pages)."""
@@ -379,6 +402,14 @@ def main():
         rows.append('<p class="more"><a href="{}">Read more →</a></p>'
                     .format(h(p["url"])))
         rows.append("</li>")
+        return "\n".join(rows)
+
+    def link_listing(items, header):
+        """Links index: ul.posts entries styled like the home listing."""
+        rows = ['<h2>' + h(header) + "</h2>", '<ul class="posts">']
+        for l in items:
+            rows.append(link_entry(l))
+        rows.append("</ul>")
         return "\n".join(rows)
 
     def post_listing(items, header):
@@ -448,8 +479,9 @@ def main():
     emit_paginated("", "Home", posts,
                    lambda chunk: post_listing(chunk, "Posts"))
     emit_paginated("/links", "Links",
-                   sorted(published["links"], reverse=True),
-                   lambda chunk: listing(chunk, "Links"))
+                   sorted(published["links"],
+                          key=lambda l: l["date"], reverse=True),
+                   lambda chunk: link_listing(chunk, "Links"))
     page(BUILD / "papers" / "index.html", "Papers",
          listing(published["papers"], "Papers"), style)
 
