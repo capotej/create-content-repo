@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.18.0] - 2026-10-27
+
+### Summary
+
+Page heads gain the last legacy capotej.com parity items: a favicon
+(inline-SVG data-URI with an emoji, matching legacy), the
+`apple-mobile-web-app-capable` / `mobile-web-app-capable` standalone-app
+metas, and `viewport-fit=cover` on the viewport. The favicon is a
+`FAVICON` constant in build.py — any `<link rel="icon">` href works, so
+a site can point it at `/assets/favicon.svg` or swap the emoji without
+touching the shell.
+
+### Changes
+
+- ccdd8d4 feat(head): favicon (configurable FAVICON constant), mobile-web-app metas, viewport-fit=cover
+
 ## [0.17.0] - 2026-10-27
 
 ### Summary
