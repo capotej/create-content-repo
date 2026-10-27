@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.16.0] - 2026-10-27
+
+### Summary
+
+Papers become a pure link-log: the index renders entries exactly like
+the links index — outbound `pdf_url` title link with the external-link
+glyph, a citation line carrying the URL, arXiv id, and date, and the
+note body beneath. The per-paper detail pages (`/papers/<slug>/`) are
+gone; `pdf_url` is now required and the build fails loud when missing.
+The papers index paginates like every other listing.
+
+### Changes
+
+- 453e443 feat(papers): link-log index, no detail pages, ported from capotej.com
+
 ## [0.15.0] - 2026-10-27
 
 ### Summary
