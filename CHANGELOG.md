@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.14.0] - 2026-10-27
+
+### Summary
+
+The links index now renders like the post index: each entry is an
+outbound title link with a muted date beneath and the note body under
+that (matching legacy capotej.com/links) — replacing the bare
+`date — title` list rows. Entries paginate like every other listing;
+the local `/links/<slug>/` archive pages are unchanged.
+
+### Changes
+
+- 7f7c40b feat(links): post-index-style entries on the links index, ported from capotej.com
+
 ## [0.13.0] - 2026-10-26
 
 ### Summary
