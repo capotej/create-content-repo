@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.0] - 2026-10-27
+
+### Summary
+
+Links and papers listings paginate at 15 entries per page (matching
+legacy capotej.com/links), while the home listing and tag pages keep
+their 5-per-page split. A fresh scaffold with a handful of entries is
+unaffected — the page-size difference only shows as a listing grows.
+
+### Changes
+
+- 475bec5 feat(pagination): links/papers at 15 per page (legacy parity), ported from capotej.com
+
 ## [0.16.0] - 2026-10-27
 
 ### Summary
