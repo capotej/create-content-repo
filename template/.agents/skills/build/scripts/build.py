@@ -48,6 +48,12 @@ BASE_URL = "https://{{NAME}}.netlify.app"
 # /page/N/ URLs — a static host cannot route ?page=N query strings).
 PER_PAGE = 5
 
+# Tab favicon: any <link rel="icon"> href — a data-URI (default, an emoji)
+# or a URL like /assets/favicon.svg. Edit per site.
+FAVICON = ("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22"
+           " viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>"
+           "\U0001F9D9\u200D\u2642\uFE0F</text></svg>")
+
 NAV = (
     '<nav><a href="/">Home</a> <a href="/links/">Links</a> '
     '<a href="/papers/">Papers</a> <a href="/about/">About</a></nav>'
@@ -62,7 +68,10 @@ SHELL = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="{favicon}">
 <title>{title}</title>
 <link rel="alternate" type="application/atom+xml" title="ATOM" href="/atom.xml">
 {head}
@@ -237,6 +246,7 @@ def page(path, title, body, style, head=""):
         SHELL.format(title=h(title + " | " + SITE_NAME)
                      if title != "Home" else h(SITE_NAME),
                      site_name=h(SITE_NAME),
+                     favicon=h(FAVICON),
                      nav=NAV, body=body, style=style, footer=FOOTER,
                      head=head),
         "utf-8")
