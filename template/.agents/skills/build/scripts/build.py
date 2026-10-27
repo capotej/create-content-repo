@@ -478,16 +478,16 @@ def main():
         out.append("</nav>")
         return "".join(out)
 
-    def emit_paginated(url_base, title, items, body_for):
+    def emit_paginated(url_base, title, items, body_for, per_page=PER_PAGE):
         """Write <url_base>/ plus <url_base>/page/N/ for a listing.
         body_for(chunk) renders one page's entries; items arrive sorted."""
         def href_for(n):
             return url_base + "/" if n == 1 else url_base + "/page/{}/".format(n)
 
         dir_base = BUILD / url_base.lstrip("/")
-        n_pages = max(1, -(-len(items) // PER_PAGE))
+        n_pages = max(1, -(-len(items) // per_page))
         for cur in range(1, n_pages + 1):
-            chunk = items[(cur - 1) * PER_PAGE:cur * PER_PAGE]
+            chunk = items[(cur - 1) * per_page:cur * per_page]
             nav_html = pager(href_for, cur, n_pages)
             if cur == 1:
                 head = ('<link rel="next" href="{}">'.format(href_for(2))
@@ -514,14 +514,18 @@ def main():
                    reverse=True)
     emit_paginated("", "Home", posts,
                    lambda chunk: post_listing(chunk, "Posts"))
+    # Legacy parity: links/papers paginate at 15/page; home + tag pages at 5.
+    LINKS_PER_PAGE = 15
     emit_paginated("/links", "Links",
                    sorted(published["links"],
                           key=lambda l: l["date"], reverse=True),
-                   lambda chunk: link_listing(chunk, "Links"))
+                   lambda chunk: link_listing(chunk, "Links"),
+                   per_page=LINKS_PER_PAGE)
     emit_paginated("/papers", "Papers",
                    sorted(published["papers"],
                           key=lambda p: p["date"], reverse=True),
-                   lambda chunk: paper_listing(chunk, "Papers"))
+                   lambda chunk: paper_listing(chunk, "Papers"),
+                   per_page=LINKS_PER_PAGE)
 
     # Tag pages (/t/<tag>/) — parity with legacy Abbey -----------------------
     # Entry shape mirrors the tag page of the legacy site: title link, date,
