@@ -69,6 +69,12 @@ main ul.posts > li > ul.tags { display: inline-flex; margin: 0;
                                vertical-align: middle; }
 main ul.posts > li > p.more { display: inline; margin: 0 0 0 1rem;
                               vertical-align: middle; }
+/* links index: citation line + external-link glyph */
+main ul.posts > li > p.cite { margin: 0.15rem 0 0.45rem;
+                              font-size: 0.85em; opacity: 0.6; }
+main ul.posts > li > p.cite a { margin-right: 0.6rem; }
+.icon-external { width: 0.8em; height: 0.8em; margin-left: 0.3rem;
+                 vertical-align: baseline; }
 /* pagination (home listing) */
 nav.pager { margin-top: 2.25rem; }
 nav.pager a, nav.pager span { margin-right: 0.75rem; }

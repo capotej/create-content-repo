@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+
 from html import escape as h
 from pathlib import Path
 from xml.sax.saxutils import escape as xescape
@@ -374,21 +375,23 @@ def main():
         return "\n".join(rows)
 
     def link_entry(l):
-        """One links-index entry, post-index style: outbound title link,
-        muted date, note body beneath (legacy /links parity). The note
-        body opens with an '= title' heading that would duplicate the
-        title link — strip it."""
+        """One links-index entry, post-index style: outbound title link
+        with an external-link glyph, a citation line (url · date), and
+        the note body beneath (legacy /links parity). The note body opens
+        with an '= title' heading that would duplicate the title link —
+        strip it."""
         body = l["body"]
         if body.startswith("<h2>"):
             end = body.find("</h2>")
             if end != -1:
                 body = body[end + len("</h2>"):].lstrip()
-        rows = ['<li><a class="post-title" href="{}">{}</a>'.format(
-            h(l["out_url"]), h(l["title"]))]
-        rows.append("<time>" + h(l["date"]) + "</time>")
-        rows.append(body)
-        rows.append("</li>")
-        return "\n".join(rows)
+        cite = ('<a href="{url}">{url}</a> <time>{date}</time>').format(
+            url=h(l["out_url"]), date=h(l["date"]))
+        return """<li><a class="post-title" href="{url}">{title}<svg class="icon-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+<p class="cite">{cite}</p>
+{body}
+</li>""".format(url=h(l["out_url"]), title=h(l["title"]), cite=cite,
+               body=body)
 
     def post_entry(p):
         """One listing entry: title, muted date, excerpt, pills + read-more
